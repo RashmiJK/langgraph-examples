@@ -28,7 +28,8 @@ def main():
         ),
         title = "Document Generator",
         description = "Enter a topic to generate a structured document",
-        theme=gr.themes.Ocean()
+        theme=gr.themes.Ocean(),
+        flagging_mode="never"
     )
 
     demo.launch()    
