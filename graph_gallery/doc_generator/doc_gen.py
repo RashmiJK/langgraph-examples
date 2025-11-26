@@ -1,9 +1,9 @@
 import os
-import warnings
+# import warnings
 from enum import Enum, auto
 
 # Suppress ExperimentalWarning from AzureAIChatCompletionsModel
-warnings.filterwarnings("ignore", message=".*AzureAIChatCompletionsModel is currently in preview.*")
+# warnings.filterwarnings("ignore", message=".*AzureAIChatCompletionsModel is currently in preview.*")
 from typing import TypedDict
 from pydantic import BaseModel, Field
 from typing import Literal
@@ -66,7 +66,8 @@ class DocGen:
         self._gllm_41 =  AzureAIChatCompletionsModel(
             endpoint=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
             credential=os.getenv("GITHUB_TOKEN"),
-            model="openai/gpt-4.1", # Highest reasoning and accuracy.
+            #model="openai/gpt-4.1", # Highest reasoning and accuracy.
+            model = "openai/gpt-4o",
             api_version="2024-08-01-preview"
         )
         self._gllm_41_mini = AzureAIChatCompletionsModel(
@@ -122,6 +123,12 @@ class DocGen:
         workflow_builder.add_conditional_edges(
             "generate_document", 
             self._route_after_generation,
+            {
+                "evaluate_for_clarity": "evaluate_for_clarity",
+                "evaluate_for_relevance": "evaluate_for_relevance",
+                "evaluate_for_harmfulness": "evaluate_for_harmfulness",
+                "finalise_response": "finalise_response"
+            }
         )
 
         workflow_builder.add_edge("evaluate_for_clarity", "aggregate_evaluations")
@@ -134,7 +141,12 @@ class DocGen:
         # Compile the graph
         graph = workflow_builder.compile()
 
-        print(graph.get_graph().draw_ascii())
+        try:
+            png_data = graph.get_graph().draw_mermaid_png()
+            with open("graph_gallery/doc_generator/doc_gen_graph.png", "wb") as f:
+                f.write(png_data)
+        except Exception as e:
+            print(f"Could not generate graph PNG: {e}")
 
         return graph
 
@@ -320,13 +332,13 @@ class DocGen:
         clarity: EvaluationResult = state.get("clarity")
         relevance: EvaluationResult = state.get("relevance")
         harmfulness: EvaluationResult = state.get("harmfulness")
-        evaluation_summary = ""
+        evaluation_summary = "Evaluation Summary:\n"
         if clarity:
-            evaluation_summary += str(clarity.score) + " " + clarity.reason
+            evaluation_summary += "clarity : " + str(clarity.score) + "\n"
         if relevance:
-            evaluation_summary += str(relevance.score) + " " + relevance.reason
+            evaluation_summary += "relevance : " + str(relevance.score) + "\n"
         if harmfulness:
-            evaluation_summary += str(harmfulness.score) + " " + harmfulness.reason
+            evaluation_summary += "harmfulness : " + str(3 - harmfulness.score) + "\n"
 
         return {"evaluation_summary": evaluation_summary}     
                    
@@ -367,6 +379,6 @@ class DocGen:
         """
         response = self._graph.invoke({"topic": input, "error_status": ErrorStatus.NO_ERROR})
         print("Response: ", response)
-        return response.get("final_response", "")
+        return response.get("final_response", ""), response.get("evaluation_summary", "")
 
         

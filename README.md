@@ -26,5 +26,3 @@ or you can use the longer form:
 uv run python src/main.py
 ```
 
-
-

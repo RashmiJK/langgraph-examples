@@ -22,9 +22,9 @@ PROMPT_FOR_TOPIC_VALIDATION = ChatPromptTemplate.from_messages(
 
 SYSTEM_PROMPT_FOR_OUTLINE_GENERATION = SystemMessagePromptTemplate.from_template("""
     Generate a clear and structured outline for a document on the topic provided as TOPIC. 
-    The outline should include an introduction, three main points, and a conclusion. 
+    The outline should include an introduction, two main points, and a conclusion. 
     Use appropriate numbered section formatting, with main sections numbered as 1, 2, 3, etc., and subsections as 1.1, 1.2, 1.3, etc. 
-    Ensure the outline logically organizes ideas, and make sure each main point is supported by relevant subpoints.
+    Ensure the outline logically organizes ideas, and make sure each main point is supported by two relevant subpoints.
 
     Before finalizing the outline, think carefully about what logical structure best presents the topic, organizing the introduction, 
     main points with supporting subsections, and conclusion in a coherent flow. 
@@ -33,8 +33,8 @@ SYSTEM_PROMPT_FOR_OUTLINE_GENERATION = SystemMessagePromptTemplate.from_template
 
     # Output Format
     - Respond with a structured outline, using numbered sections and subsections as specified.
-    - The outline should start with an "Introduction" (section 1), followed by three main points (sections 2, 3, and 4), each with at least two subsections.
-    - Conclude with a "Conclusion" (section 5).
+    - The outline should start with an "Introduction" (section 1), followed by two main points (sections 2, 3), each with just two subsections.
+    - Conclude with a "Conclusion" (section 4).
 
     # Example
 
@@ -50,21 +50,14 @@ SYSTEM_PROMPT_FOR_OUTLINE_GENERATION = SystemMessagePromptTemplate.from_template
     2. Positive Impacts of Social Media  
     2.1 Enhanced connectivity and communication  
     2.2 Opportunities for self-expression and creativity  
-    2.3 Access to educational resources  
 
     3. Negative Impacts of Social Media  
     3.1 Increased risk of cyberbullying  
     3.2 Mental health concerns  
-    3.3 Exposure to inappropriate content  
 
-    4. Strategies for Healthy Social Media Use  
-    4.1 Parental guidance and monitoring  
-    4.2 Digital literacy education  
-    4.3 Encouraging balanced offline activities  
-
-    5. Conclusion  
-    5.1 Summary of main findings  
-    5.2 Recommendations for teenagers, parents, and educators  
+    4. Conclusion  
+    4.1 Summary of main findings  
+    4.2 Recommendations for teenagers, parents, and educators  
 
     (Note: In a full answer, section and subsection titles should be tailored for the chosen topic. For more complex topics, include more informative subsection titles.)
 
