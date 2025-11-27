@@ -19,4 +19,4 @@ dependencies = [
 package = true
 
 [project.scripts]
-doc_gen = "graph_gallery.doc_generator.doc_gen_app:main"
+doc_gen = "graph_examples.doc_generator.doc_gen_app:main"

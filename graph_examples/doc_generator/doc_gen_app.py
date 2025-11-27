@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import gradio as gr
-from graph_gallery.doc_generator.doc_gen import DocGen
+from graph_examples.doc_generator.doc_gen import DocGen
 from fpdf import FPDF
 import tempfile
 
