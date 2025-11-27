@@ -5,12 +5,13 @@ from graph_gallery.doc_generator.doc_gen import DocGen
 from fpdf import FPDF
 import tempfile
 
-def doc_gen(input: str | None) -> str | None:
+async def doc_gen(input: str | None) -> tuple[str | None, str | None]:
     """
-    Generate a document on the topic prompted by the user.
+    Generate a document on the topic prompted by the user (async).
     """
     doc_gen = DocGen()
-    response, eval_summary = doc_gen.respond(input)
+    # Await the async respond method
+    response, eval_summary = await doc_gen.respond(input)
     return response, eval_summary
 
 def save_as_pdf(output_text: str):
@@ -96,7 +97,7 @@ def main():
 
         # Event handlers
         submit_btn.click(
-            fn = doc_gen,
+            fn = doc_gen, # Gradio handles Async function execution
             inputs = input_box,
             outputs = [output_box, eval_summary_md]
         )

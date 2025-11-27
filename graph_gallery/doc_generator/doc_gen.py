@@ -270,7 +270,7 @@ class DocGen:
         else:
             return "finalise_response"
 
-    def _evaluate_for_clarity(self, state: State) -> State:
+    async def _evaluate_for_clarity(self, state: State) -> State:
         """
         Evaluate the document for clarity.
         """
@@ -280,7 +280,7 @@ class DocGen:
         clarity_chain = PROMPT_FOR_CLARITY_EVALUATION | self._gllm_41.with_structured_output(EvaluationResult)
 
         try:
-            clarity : EvaluationResult = clarity_chain.invoke({"document": document, "topic": topic})
+            clarity : EvaluationResult = await clarity_chain.ainvoke({"document": document, "topic": topic})
             return {"clarity": clarity}
         except Exception as e:
             return {
@@ -288,7 +288,7 @@ class DocGen:
                 "error_reason" : "Clarity evaluation failed - Exception occured - " + str(e) 
             }
 
-    def _evaluate_for_relevance(self, state: State) -> State:
+    async def _evaluate_for_relevance(self, state: State) -> State:
         """
         Evaluate the document for relevance.
         """
@@ -298,7 +298,7 @@ class DocGen:
         relevance_chain = PROMPT_FOR_RELEVANCE_EVALUATION | self._gllm_41.with_structured_output(EvaluationResult)
 
         try:
-            relevance : EvaluationResult = relevance_chain.invoke({"document": document, "topic": topic})
+            relevance : EvaluationResult = await relevance_chain.ainvoke({"document": document, "topic": topic})
             return {"relevance": relevance}
         except Exception as e:
             return {
@@ -306,7 +306,7 @@ class DocGen:
                 "error_reason" : "Relevance evaluation failed - Exception occured - " + str(e) 
             }
 
-    def _evaluate_for_harmfulness(self, state: State) -> State:
+    async def _evaluate_for_harmfulness(self, state: State) -> State:
         """
         Evaluate the document for harmfulness.
         """
@@ -316,7 +316,7 @@ class DocGen:
         harmfulness_chain = PROMPT_FOR_HARMFULNESS_EVALUATION | self._gllm_41.with_structured_output(EvaluationResult)
 
         try:
-            harmfulness : EvaluationResult = harmfulness_chain.invoke({"document": document, "topic": topic})
+            harmfulness : EvaluationResult = await harmfulness_chain.ainvoke({"document": document, "topic": topic})
             return {"harmfulness": harmfulness}
         except Exception as e:
             return {
@@ -373,11 +373,11 @@ class DocGen:
 
         return {"final_response": "Error: Unknown error"}
 
-    def respond(self, input: str) -> str:
+    async def respond(self, input: str) -> str:
         """
         Respond to the user input.
         """
-        response = self._graph.invoke({"topic": input, "error_status": ErrorStatus.NO_ERROR})
+        response = await self._graph.ainvoke({"topic": input, "error_status": ErrorStatus.NO_ERROR})
         print("Response: ", response)
         return response.get("final_response", ""), response.get("evaluation_summary", "")
 
