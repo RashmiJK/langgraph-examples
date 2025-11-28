@@ -1,28 +1,48 @@
-# LangGraph Gallery Demo
+# LangGraph Examples
 
 
-## Setup
+## Environment Setup
 
-[UV environment manager](https://docs.astral.sh/uv/getting-started/installation/)
+Use [UV environment manager](https://docs.astral.sh/uv/getting-started/installation/) to run the examples.
 
 ```bash
-# install uv on MacOS
+# Install uv on MacOS
 brew install uv
 
-# install uv on Windows
+# Install uv on Windows
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ```bash
-# add python package to env
-uv add <package_name>
+# Git clone the repository
+git clone https://github.com/RashmiJK/langgraph-examples.git
 ```
 
-```bash 
-uv run main
-```
-or you can use the longer form:
 ```bash
-uv run python src/main.py
+# Sync the environment 
+uv sync
 ```
 
+## Running the Examples
+<table border="1">
+    <tr>
+        <!-- This cell spans 2 columns -->
+        <td colspan="2" align="center"><strong><h2>LangGraph Examples</h2></strong></td>
+    </tr>
+    <tr>
+        <td> Document Generator</td>
+        <td> Next Example </td>
+    </tr>
+    <tr>
+        <td>
+            <img src="graph_examples/doc_generator/doc_gen_graph.png" width="200" height="200">
+            <img src="graph_examples/doc_generator/doc_gen_ui.png" width="200" height="200">
+        </td>
+        <td>            
+        </td>
+    </tr>
+    <tr>
+        <td>Execute: <code>uv run doc_gen</code></td>
+        <td></td>
+    </tr>
+</table>
