@@ -1,9 +1,10 @@
-import os
+import os, signal, atexit, sys
 from dotenv import load_dotenv
 import gradio as gr
 from graph_examples.doc_generator.doc_gen import DocGen
 from fpdf import FPDF
 import tempfile
+
 
 async def doc_gen(input: str | None) -> tuple[str | None, str | None]:
     """
@@ -92,12 +93,7 @@ def main():
                 eval_summary_md = gr.Markdown(elem_id="eval-summary")
 
                 save_pdf_btn = gr.Button("💾 Download as PDF", variant="primary", visible=True)
-                pdf_file = gr.File(
-                    label=None,
-                    visible=True,
-                    height=4,
-                    interactive=False
-                )
+                pdf_file = gr.File(label=None, height=30)
 
         # Event handlers
         submit_btn.click(
@@ -127,13 +123,14 @@ def main():
         )
 
         demo.launch(
-            theme=gr.themes.Ocean(),
-            css="""
-                #eval-summary {
-                    color: #06b6d4;
-                }
+                theme=gr.themes.Ocean(),
+                css="""
+                    #eval-summary {
+                        color: #06b6d4;
+                    }
             """
         )
+
 
 if __name__ == "__main__":
     main()
