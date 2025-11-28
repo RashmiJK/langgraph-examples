@@ -47,6 +47,8 @@ def save_as_pdf(output_text: str):
 
     # Save to a temporary file
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf", prefix='document_')
+    temp_file.close()
+    print(f"Saving PDF to {temp_file.name}")
     pdf.output(temp_file.name)  
     
     return temp_file.name
@@ -55,19 +57,16 @@ def save_as_pdf(output_text: str):
 def main():
     load_dotenv(override=True)
 
+    title = os.path.splitext(os.path.basename(__file__))[0]
+
     # Use gr.blocks for custom layout
     with gr.Blocks(
-            theme=gr.themes.Ocean(),
-            css="""
-                #eval-summary {
-                    color: #06b6d4;
-                }
-            """
+        title=title
         ) as demo:
         gr.Markdown(
                 "<h1 style='text-align: center; color: #06b6d4'> Document Generator</h1>"
             )
-        gr.Markdown("<p style='color: #06b6d4'>Enter a topic to generate a structured document</p>")
+        gr.Markdown("<h4 style='color: #06b6d4'>Transform your ideas into structured documents instantly. Simply enter a topic below to get started.</h3>")
 
         with gr.Row():
             # Left column - Input
@@ -87,13 +86,18 @@ def main():
                 output_box = gr.Textbox(
                     lines = 30,
                     label = "Generated Output",
-                    show_copy_button = True
+                    buttons = ['copy']
                 )
 
                 eval_summary_md = gr.Markdown(elem_id="eval-summary")
 
                 save_pdf_btn = gr.Button("💾 Download as PDF", variant="primary", visible=True)
-                pdf_file = gr.File(visible=False)
+                pdf_file = gr.File(
+                    label=None,
+                    visible=True,
+                    height=4,
+                    interactive=False
+                )
 
         # Event handlers
         submit_btn.click(
@@ -103,7 +107,7 @@ def main():
         )
 
         clear_btn.click(
-            fn = lambda: ("", ""),
+            fn = lambda: ("", "", ""),
             inputs=None,
             outputs = (input_box, output_box, eval_summary_md)
         )
@@ -113,11 +117,8 @@ def main():
             fn = save_as_pdf,
             inputs=output_box,
             outputs=pdf_file
-        ).then(
-            fn=lambda: (gr.Button(visible=False), gr.File(visible=True)),
-            outputs=[save_pdf_btn, pdf_file]
         )
-        
+
         # Allow enter key to submit
         input_box.submit(
             fn = doc_gen,
@@ -125,7 +126,14 @@ def main():
             outputs = [output_box, eval_summary_md]
         )
 
-        demo.launch()
+        demo.launch(
+            theme=gr.themes.Ocean(),
+            css="""
+                #eval-summary {
+                    color: #06b6d4;
+                }
+            """
+        )
 
 if __name__ == "__main__":
     main()

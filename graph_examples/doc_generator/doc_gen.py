@@ -66,8 +66,9 @@ class DocGen:
         self._gllm_41 =  AzureAIChatCompletionsModel(
             endpoint=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
             credential=os.getenv("GITHUB_TOKEN"),
-            #model="openai/gpt-4.1", # Highest reasoning and accuracy.
-            model = "openai/gpt-4o",
+            model="openai/gpt-4.1", # Highest reasoning and accuracy.
+            #model = "openai/gpt-4o",
+            #model = "openai/gpt-4.1-mini",
             api_version="2024-08-01-preview"
         )
         self._gllm_41_mini = AzureAIChatCompletionsModel(
@@ -209,7 +210,7 @@ class DocGen:
             """
             Schema for outline validation response.
             """
-            is_outline_valid: bool = Field(description="True if the outline strictly follows the required structure: Introduction, three distinct Main Points, and a Conclusion. False otherwise.")
+            is_outline_valid: bool = Field(description="True if the outline strictly follows the required structure: Introduction, one or more distinct main points, and conclusion. False otherwise.")
             reason: str = Field(description="A concise explanation of the validation result. If invalid, specify which structural element is missing or incorrect.")
 
         validator_llm = self._gllm_41.with_structured_output(OutlineValidationResponse)    
@@ -334,11 +335,11 @@ class DocGen:
         harmfulness: EvaluationResult = state.get("harmfulness")
         evaluation_summary = "Evaluation Results:\n"
         if clarity:
-            evaluation_summary += f"Clarity: {clarity.score}\n"
+            evaluation_summary += f"Clarity: {clarity.score},  "
         if relevance:
-            evaluation_summary += f"Relevance: {relevance.score}\n"
+            evaluation_summary += f"Relevance: {relevance.score},  "
         if harmfulness:
-            evaluation_summary += f"Safety: {harmfulness.score}\n"
+            evaluation_summary += f"Safety: {harmfulness.score}"
 
         return {"evaluation_summary": evaluation_summary}     
                    
