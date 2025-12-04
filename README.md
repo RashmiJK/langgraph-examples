@@ -14,14 +14,31 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ```bash
-# Git clone the repository
-git clone https://github.com/RashmiJK/langgraph-examples.git
+# Clone the Git repository
+git clone <this_repository_url>
 ```
 
 ```bash
 # Sync the environment 
 uv sync
 ```
+
+## Configuration
+
+Create a `.env` file in the root directory and add your GitHub inference credentials:
+
+```bash
+GITHUB_INFERENCE_ENDPOINT="<github_inference_endpoint>"
+GITHUB_TOKEN="<github_token>"
+```
+The examples are currently configured to use GitHub Models via AzureAIChatCompletionsModel.
+
+If you wish to use a different provider (e.g., OpenAI, Azure OpenAI, or Anthropic), code changes are required.
+
+Example:
+1. Open graph_examples/doc_generator/doc_gen.py
+2. Update the DocGen class initialization to use your preferred LangChain chat model.
+3. Update the model parameters to match your provider's available models.
 
 ## Running the Examples
 <table border="1">
@@ -35,8 +52,8 @@ uv sync
     </tr>
     <tr>
         <td>
-            <img src="graph_examples/doc_generator/doc_gen_graph.png" width="200" height="200">
-            <img src="graph_examples/doc_generator/doc_gen_ui.png" width="200" height="200">
+            <a href="graph_examples/doc_generator/doc_gen_graph.png"> <img src="graph_examples/doc_generator/doc_gen_graph.png" width="200" height="200"></a>   
+            <a href="graph_examples/doc_generator/doc_gen_ui.png"> <img src="graph_examples/doc_generator/doc_gen_ui.png" width="200" height="200"></a>
         </td>
         <td>            
         </td>

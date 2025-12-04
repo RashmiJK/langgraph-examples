@@ -1,0 +1,35 @@
+/* Input section - teal accent */
+#input-section {
+    background: rgba(8, 145, 178, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #0891b2;
+}
+
+/* Output section - pink accent */
+#output-section {
+    background: rgba(236, 72, 153, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #ec4899;
+}
+
+/* Evaluation summary */
+#eval-summary {
+    color: #0891b2;
+    background: rgba(8, 145, 178, 0.05);
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid #0891b2;
+    font-weight: 600;
+}
+
+/* Smooth transitions */
+button {
+    transition: all 0.3s ease !important;
+}
+
+/* File component height fix */
+.pdf-file {
+    min-height: 200px !important;
+}

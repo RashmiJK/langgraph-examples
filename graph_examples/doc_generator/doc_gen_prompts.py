@@ -1,9 +1,8 @@
 from langchain_core.prompts import (
     ChatPromptTemplate,
-    SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
 )
-
 
 SYSTEM_PROMPT_TO_VALIDATE_TOPIC = SystemMessagePromptTemplate.from_template("""
     Assess whether the provided TOPIC is (A) a valid English sentence—not gibberish—and (B) suitable as a topic for generating a document. 
@@ -15,10 +14,10 @@ SYSTEM_PROMPT_TO_VALIDATE_TOPIC = SystemMessagePromptTemplate.from_template("""
 PROMPT_FOR_TOPIC_VALIDATION = ChatPromptTemplate.from_messages(
     [
         (SYSTEM_PROMPT_TO_VALIDATE_TOPIC),
-        (HumanMessagePromptTemplate.from_template("""TOPIC: {topic}"""))
+        (HumanMessagePromptTemplate.from_template("""TOPIC: {topic}""")),
     ]
 )
-# ----- END OF PROMPT FOR TOPIC VALIDATION -----    
+# ----- END OF PROMPT FOR TOPIC VALIDATION -----
 
 SYSTEM_PROMPT_FOR_OUTLINE_GENERATION = SystemMessagePromptTemplate.from_template("""
     Generate a clear and structured outline for a document on the topic provided as TOPIC. 
@@ -71,10 +70,10 @@ SYSTEM_PROMPT_FOR_OUTLINE_GENERATION = SystemMessagePromptTemplate.from_template
 PROMPT_FOR_OUTLINE_GENERATION = ChatPromptTemplate.from_messages(
     [
         (SYSTEM_PROMPT_FOR_OUTLINE_GENERATION),
-        (HumanMessagePromptTemplate.from_template("""TOPIC: {topic}"""))
+        (HumanMessagePromptTemplate.from_template("""TOPIC: {topic}""")),
     ]
 )
-# ----- END OF PROMPT FOR OUTLINE GENERATION -----  
+# ----- END OF PROMPT FOR OUTLINE GENERATION -----
 
 SYSTEM_PROMPT_FOR_OUTLINE_VALIDATION = SystemMessagePromptTemplate.from_template("""
     You are a document outline validator. Your task is to assess whether the given OUTLINE meets all requirements specified in the OUTLINE CRITERIA below. 
@@ -89,10 +88,14 @@ SYSTEM_PROMPT_FOR_OUTLINE_VALIDATION = SystemMessagePromptTemplate.from_template
 PROMPT_FOR_OUTLINE_VALIDATION = ChatPromptTemplate.from_messages(
     [
         (SYSTEM_PROMPT_FOR_OUTLINE_VALIDATION),
-        (HumanMessagePromptTemplate.from_template("""OUTLINE: {outline}\n TOPIC: {topic}"""))
+        (
+            HumanMessagePromptTemplate.from_template(
+                """OUTLINE: {outline}\n TOPIC: {topic}"""
+            )
+        ),
     ]
 )
-# ----- END OF PROMPT FOR OUTLINE VALIDATION -----  
+# ----- END OF PROMPT FOR OUTLINE VALIDATION -----
 
 SYSTEM_PROMPT_FOR_DOCUMENT_GENERATION = SystemMessagePromptTemplate.from_template("""
     You are a skilled writer. Write a two-page document based on the provided OUTLINE on the given TOPIC formatted in the manner of high-quality PDF reading materials. For each point in the outline, expand with clear explanations and include one relevant example. Write in clear, polished prose without using Markdown formatiing (do not use **, ---, or similar symbols). Ensure each explanation is concise, clear, and does not exceed ten lines. Use the section and subsection numbering exactly as given in the outline.
@@ -101,10 +104,14 @@ SYSTEM_PROMPT_FOR_DOCUMENT_GENERATION = SystemMessagePromptTemplate.from_templat
 PROMPT_FOR_DOCUMENT_GENERATION = ChatPromptTemplate.from_messages(
     [
         (SYSTEM_PROMPT_FOR_DOCUMENT_GENERATION),
-        (HumanMessagePromptTemplate.from_template("""OUTLINE: {outline}\n TOPIC: {topic}"""))
+        (
+            HumanMessagePromptTemplate.from_template(
+                """OUTLINE: {outline}\n TOPIC: {topic}"""
+            )
+        ),
     ]
 )
-# ----- END OF PROMPT FOR DOCUMENT GENERATION -----  
+# ----- END OF PROMPT FOR DOCUMENT GENERATION -----
 
 SYSTEM_PROMPT_FOR_CLARITY_EVALUATION = SystemMessagePromptTemplate.from_template("""
     Evaluate the clarity and conciseness of the provided DOCUMENT in relation to the given TOPIC, following the CLARITY CRITERIA below. Reflect step-by-step internally on how the DOCUMENT addresses the TOPIC and meets the specified standards before assigning a final score. 
@@ -118,10 +125,14 @@ SYSTEM_PROMPT_FOR_CLARITY_EVALUATION = SystemMessagePromptTemplate.from_template
 PROMPT_FOR_CLARITY_EVALUATION = ChatPromptTemplate.from_messages(
     [
         (SYSTEM_PROMPT_FOR_CLARITY_EVALUATION),
-        (HumanMessagePromptTemplate.from_template("""DOCUMENT: {document}\n TOPIC: {topic}"""))
+        (
+            HumanMessagePromptTemplate.from_template(
+                """DOCUMENT: {document}\n TOPIC: {topic}"""
+            )
+        ),
     ]
 )
-# ----- END OF PROMPT FOR CLARITY EVALUATION -----  
+# ----- END OF PROMPT FOR CLARITY EVALUATION -----
 
 
 SYSTEM_PROMPT_FOR_RELEVANCE_EVALUATION = SystemMessagePromptTemplate.from_template("""
@@ -136,10 +147,14 @@ SYSTEM_PROMPT_FOR_RELEVANCE_EVALUATION = SystemMessagePromptTemplate.from_templa
 PROMPT_FOR_RELEVANCE_EVALUATION = ChatPromptTemplate.from_messages(
     [
         (SYSTEM_PROMPT_FOR_RELEVANCE_EVALUATION),
-        (HumanMessagePromptTemplate.from_template("""DOCUMENT: {document}\n TOPIC: {topic}"""))
+        (
+            HumanMessagePromptTemplate.from_template(
+                """DOCUMENT: {document}\n TOPIC: {topic}"""
+            )
+        ),
     ]
 )
-# ----- END OF PROMPT FOR RELEVANCE EVALUATION -----       
+# ----- END OF PROMPT FOR RELEVANCE EVALUATION -----
 
 SYSTEM_PROMPT_FOR_HARMFULNESS_EVALUATION = SystemMessagePromptTemplate.from_template("""
     Evaluate the harmfulness of the provided DOCUMENT in relation to the given TOPIC, following the HARMFULNESS CRITERIA below. Reflect step-by-step internally on how the DOCUMENT addresses the TOPIC and meets the specified standards before assigning a final score. 
@@ -153,7 +168,11 @@ SYSTEM_PROMPT_FOR_HARMFULNESS_EVALUATION = SystemMessagePromptTemplate.from_temp
 PROMPT_FOR_HARMFULNESS_EVALUATION = ChatPromptTemplate.from_messages(
     [
         (SYSTEM_PROMPT_FOR_HARMFULNESS_EVALUATION),
-        (HumanMessagePromptTemplate.from_template("""DOCUMENT: {document}\n TOPIC: {topic}"""))
+        (
+            HumanMessagePromptTemplate.from_template(
+                """DOCUMENT: {document}\n TOPIC: {topic}"""
+            )
+        ),
     ]
 )
-# ----- END OF PROMPT FOR HARMFULNESS EVALUATION -----       
+# ----- END OF PROMPT FOR HARMFULNESS EVALUATION -----
