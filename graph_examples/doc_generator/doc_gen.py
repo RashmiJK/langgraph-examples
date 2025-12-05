@@ -1,14 +1,13 @@
 import os
-
-# import warnings
 from enum import Enum, auto
 
 # Suppress ExperimentalWarning from AzureAIChatCompletionsModel
 # warnings.filterwarnings("ignore", message=".*AzureAIChatCompletionsModel is currently in preview.*")
-from typing import Literal, TypedDict
+from typing import Any, Literal, TypedDict
 
 from langchain_azure_ai.chat_models import AzureAIChatCompletionsModel
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 from pydantic import BaseModel, Field
 
 from graph_examples.doc_generator.doc_gen_prompts import (
@@ -20,6 +19,7 @@ from graph_examples.doc_generator.doc_gen_prompts import (
     PROMPT_FOR_RELEVANCE_EVALUATION,
     PROMPT_FOR_TOPIC_VALIDATION,
 )
+from graph_examples.logger import get_logger
 
 
 class ErrorStatus(Enum):
@@ -34,6 +34,9 @@ class ErrorStatus(Enum):
     OUTLINE_VALIDATION_FAILED = auto()
     DOCUMENT_GENERATION_FAILED = auto()
     EVALUATION_FAILED = auto()
+    CLARITY_EVALUATION_FAILED = auto()
+    RELEVANCE_EVALUATION_FAILED = auto()
+    HARMFULNESS_EVALUATION_FAILED = auto()
 
 
 class EvaluationResult(BaseModel):
@@ -47,7 +50,7 @@ class EvaluationResult(BaseModel):
     reason: str = Field(description="Brief justification for the score")
 
 
-class State(TypedDict):
+class State(TypedDict, total=False):
     """
     Represents the state of the workflow
     """
@@ -73,6 +76,7 @@ class DocGen:
         """
         Initialize the DocGen class.
         """
+        self.logger = get_logger(__name__)
         self._gllm_41 = AzureAIChatCompletionsModel(
             endpoint=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
             credential=os.getenv("GITHUB_TOKEN"),
@@ -95,7 +99,7 @@ class DocGen:
         )
         self._graph = self._build_workflow()
 
-    def _build_workflow(self):
+    def _build_workflow(self) -> CompiledStateGraph[Any, Any, Any]:
         """
         Build the workflow for the document generation.
         """
@@ -146,7 +150,7 @@ class DocGen:
             with open("graph_examples/doc_generator/doc_gen_graph.png", "wb") as f:
                 f.write(png_data)
         except Exception as e:
-            print(f"Could not generate graph PNG: {e}")
+            self.logger.exception("Could not generate graph PNG: %s", e)
 
         return graph
 
@@ -227,7 +231,7 @@ class DocGen:
             validator_response: OutlineValidationResponse = validator_chain.invoke(
                 {"outline": outline, "topic": state["topic"]}
             )
-            # print("Validator response: ", json.dumps(validator_response.dict(), indent=4))
+            # self.logger.debug("Validator response: %s", validator_response.dict())
             if validator_response.is_outline_valid:
                 return {}
             else:
@@ -370,9 +374,9 @@ class DocGen:
         Aggregate the evaluations.
         """
         # update evaluation_summary
-        clarity: EvaluationResult = state.get("clarity")
-        relevance: EvaluationResult = state.get("relevance")
-        harmfulness: EvaluationResult = state.get("harmfulness")
+        clarity: EvaluationResult | None = state.get("clarity")
+        relevance: EvaluationResult | None = state.get("relevance")
+        harmfulness: EvaluationResult | None = state.get("harmfulness")
         evaluation_summary = "Evaluation Results:\n"
         if clarity:
             evaluation_summary += f"Clarity: {clarity.score},  "
@@ -419,14 +423,14 @@ class DocGen:
 
         return {"final_response": "Error: Unknown error"}
 
-    async def respond(self, input: str) -> str:
+    async def respond(self, input: str | None) -> tuple[str, str]:
         """
         Respond to the user input.
         """
         response = await self._graph.ainvoke(
             {"topic": input, "error_status": ErrorStatus.NO_ERROR}
         )
-        print("Response: ", response)
+        self.logger.debug("Response: %s", response)
         return response.get("final_response", ""), response.get(
             "evaluation_summary", ""
         )

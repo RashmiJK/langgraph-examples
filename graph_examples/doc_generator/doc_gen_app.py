@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 from fpdf import FPDF
 
 from graph_examples.doc_generator.doc_gen import DocGen
+from graph_examples.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 async def doc_gen(input: str | None) -> tuple[str | None, str | None]:
@@ -18,7 +21,7 @@ async def doc_gen(input: str | None) -> tuple[str | None, str | None]:
     return response, eval_summary
 
 
-def save_as_pdf(output_text: str):
+def save_as_pdf(output_text: str) -> str | None:
     """
     Save the output text as a PDF file.
     """
@@ -38,9 +41,7 @@ def save_as_pdf(output_text: str):
         pdf.add_font("DejaVu", "", font_path, uni=True)
         pdf.set_font("DejaVu", size=12)
     except RuntimeError:
-        print(
-            f"Warning: Could not load font at {font_path}. Fallback to standard Arial."
-        )
+        logger.exception("Could not load font at %s", font_path)
         pdf.set_font("Arial", size=12)
 
     # Add content to PDF
@@ -56,13 +57,16 @@ def save_as_pdf(output_text: str):
         delete=False, suffix=".pdf", prefix="document_"
     )
     temp_file.close()
-    print(f"Saving PDF to {temp_file.name}")
+    logger.info("Saving PDF to file %s", temp_file.name)
     pdf.output(temp_file.name)
 
     return temp_file.name
 
 
-def main():
+def main() -> None:
+    """
+    Main function to run the document generator app.
+    """
     load_dotenv(override=True)
 
     title = os.path.splitext(os.path.basename(__file__))[0]

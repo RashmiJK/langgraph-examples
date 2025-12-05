@@ -30,6 +30,7 @@ Create a `.env` file in the root directory and add your GitHub inference credent
 ```bash
 GITHUB_INFERENCE_ENDPOINT="<github_inference_endpoint>"
 GITHUB_TOKEN="<github_token>"
+LOG_LEVEL="<log_level>"
 ```
 The examples are currently configured to use GitHub Models via AzureAIChatCompletionsModel.
 
@@ -59,7 +60,7 @@ Example:
         </td>
     </tr>
     <tr>
-        <td>Execute: <code>uv run doc_gen</code></td>
+        <td>From the repository root folder, execute: <code>uv run doc_gen</code></td>
         <td></td>
     </tr>
 </table>
