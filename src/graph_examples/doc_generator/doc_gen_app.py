@@ -8,6 +8,7 @@ from fpdf import FPDF
 from graph_examples.doc_generator.doc_gen import DocGen
 from graph_examples.logger import get_logger
 
+load_dotenv(override=True)
 logger = get_logger(__name__)
 
 
@@ -67,8 +68,6 @@ def main() -> None:
     """
     Main function to run the document generator app.
     """
-    load_dotenv(override=True)
-
     title = os.path.splitext(os.path.basename(__file__))[0]
 
     # Use gr.blocks for custom layout

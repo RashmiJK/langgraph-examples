@@ -1,8 +1,6 @@
 import os
+import warnings
 from enum import Enum, auto
-
-# Suppress ExperimentalWarning from AzureAIChatCompletionsModel
-# warnings.filterwarnings("ignore", message=".*AzureAIChatCompletionsModel is currently in preview.*")
 from typing import Any, Literal, TypedDict
 
 from langchain_azure_ai.chat_models import AzureAIChatCompletionsModel
@@ -20,6 +18,11 @@ from graph_examples.doc_generator.doc_gen_prompts import (
     PROMPT_FOR_TOPIC_VALIDATION,
 )
 from graph_examples.logger import get_logger
+
+# Suppress ExperimentalWarning from AzureAIChatCompletionsModel
+warnings.filterwarnings(
+    "ignore", message=".*AzureAIChatCompletionsModel is currently in preview.*"
+)
 
 
 class ErrorStatus(Enum):

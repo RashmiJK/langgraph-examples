@@ -1,5 +1,5 @@
 [project]
-name = "langgraph-gallery-demo"
+name = "langgraph-examples"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -10,10 +10,18 @@ dependencies = [
     "grandalf>=0.8",
     "langchain>=1.0.8",
     "langchain-azure-ai>=1.0.0",
+    "langchain-chroma>=1.0.0",
+    "langchain-community>=0.4.1",
+    "langchain-text-splitters>=1.0.0",
     "langgraph>=1.0.3",
     "mermaid-python>=0.1",
+    "pypdf>=6.4.0",
     "python-dotenv>=1.2.1",
+    "tiktoken>=0.12.0",
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.uv]
 package = true
@@ -26,6 +34,7 @@ dev = [
 
 [project.scripts]
 doc_gen = "graph_examples.doc_generator.doc_gen_app:main"
+rag_search = "graph_examples.rag_search.rag_search_app:main"
 
 [tool.ruff]
 fix = true

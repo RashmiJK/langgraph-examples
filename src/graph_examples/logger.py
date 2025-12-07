@@ -19,7 +19,8 @@ def get_logger(name: str = __name__) -> logging.Logger:
         logger.setLevel(getattr(logging, log_level, logging.INFO))
 
         log_format = os.getenv(
-            "LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            "LOG_FORMAT",
+            "%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s",
         )
 
         formatter = logging.Formatter(log_format)
