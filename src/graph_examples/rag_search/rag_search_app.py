@@ -1,10 +1,13 @@
 import os
 
 import gradio as gr
+import pandas as pd
 from dotenv import load_dotenv
 
 from graph_examples.logger import get_logger
-from graph_examples.rag_search.ingest_chroma import IngestChroma
+from graph_examples.rag_search.chroma_interface import ChromaInterface
+from graph_examples.rag_search.rag_search import RagSearch
+from graph_examples.rag_search.types import ListOfSearchedResults
 
 load_dotenv(override=True)
 logger = get_logger(__name__)
@@ -17,7 +20,7 @@ def ingest_documents(file_list: list, chunk_size: int):
     if not file_list:
         return "Please upload a file first."
 
-    ingest_chroma = IngestChroma()
+    ingest_chroma = ChromaInterface.get_instance()
     ingestion_status = []
 
     for file in file_list:
@@ -31,15 +34,34 @@ def describe_ingested_files() -> str:
     """
     List of ingested files.
     """
-    ingest_chroma = IngestChroma()
-    return ingest_chroma.describe_ingested_content()
+    describe_chroma = ChromaInterface.get_instance()
+    return describe_chroma.describe_ingested_content()
 
 
-def backend_search_pipeline(query):
+def backend_search_pipeline(
+    query: str,
+) -> tuple[str, pd.DataFrame, pd.DataFrame]:
     """
     Mock function to simulate search.
     """
-    pass
+    logger.info("Query: %s", query)
+
+    # validate query
+    if not query or not query.strip():
+        return "Please enter a search query.", [], []
+
+    rag_search = RagSearch()
+    search_results, reranked_results = rag_search.respond(query)
+    logger.debug("Search results: %s %s", search_results, type(search_results))
+
+    search_result_df = pd.DataFrame(
+        {"Score": r.score, "Chunk Text": r.document, "Source": r.source}
+        for r in search_results.results
+    )
+    # search_result_df.sort_values(by="Score", inplace=True).reset_index(drop=True)
+    logger.debug("Search results df:\n %s", search_result_df)
+
+    return query, search_result_df, []
 
 
 def main() -> None:
@@ -126,12 +148,16 @@ def main() -> None:
                         )
                         # Using Dataframe for clean display of scores and text
                         initial_results_output = gr.Dataframe(
-                            headers=["Rank", "Score", "Chunk Text"],
-                            datatype=["number", "number", "str"],
-                            row_count=6,
-                            column_count=(3, "fixed"),
+                            headers=["Score", "Chunk Text", "Source"],
+                            datatype=["number", "str", "str"],
+                            row_count="dynamic",
+                            column_count=3,
+                            column_widths=["80px", "600px", "200px"],
+                            max_height=None,
                             interactive=False,
-                            wrap=True,  # Important for long text chunks
+                            wrap=True,
+                            show_row_numbers=True,
+                            elem_classes=["bordered-table"],
                         )
 
                 # Reranker Output
@@ -140,10 +166,11 @@ def main() -> None:
                         "<h4 style='color: #2563eb; margin-bottom: 10px;'>Stage 2: After Reranking (Top 6)</h4>"
                     )
                     reranked_results_output = gr.Dataframe(
-                        headers=["New Rank", "Re-Score", "Chunk Text"],
-                        datatype=["number", "number", "str"],
+                        headers=["Re-Score", "Chunk Text", "Source"],
+                        datatype=["number", "str", "str"],
                         row_count=6,
-                        column_count=(3, "fixed"),
+                        column_count=3,
+                        column_widths=["10%", "70%", "20%"],
                         interactive=False,
                         wrap=True,
                     )
@@ -162,7 +189,7 @@ def main() -> None:
             trigger(
                 fn=backend_search_pipeline,
                 inputs=[query_input],
-                outputs=[initial_results_output, reranked_results_output],
+                outputs=[query_input, initial_results_output, reranked_results_output],
                 show_progress="full",
             )
 

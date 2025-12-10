@@ -20,7 +20,7 @@ def get_logger(name: str = __name__) -> logging.Logger:
 
         log_format = os.getenv(
             "LOG_FORMAT",
-            "%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s",
+            "%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s\n",
         )
 
         formatter = logging.Formatter(log_format)

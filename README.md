@@ -53,8 +53,8 @@ Example:
     </tr>
     <tr>
         <td>
-            <a href="graph_examples/doc_generator/doc_gen_graph.png"> <img src="graph_examples/doc_generator/doc_gen_graph.png" width="200" height="200"></a>   
-            <a href="graph_examples/doc_generator/doc_gen_ui.png"> <img src="graph_examples/doc_generator/doc_gen_ui.png" width="200" height="200"></a>
+            <a href="src/graph_examples/doc_generator/doc_gen_graph.png"> <img src="src/graph_examples/doc_generator/doc_gen_graph.png" width="200" height="200"></a>   
+            <a href="src/graph_examples/doc_generator/doc_gen_ui.png"> <img src="src/graph_examples/doc_generator/doc_gen_ui.png" width="200" height="200"></a>
         </td>
         <td>            
         </td>

@@ -150,7 +150,7 @@ class DocGen:
 
         try:
             png_data = graph.get_graph().draw_mermaid_png()
-            with open("graph_examples/doc_generator/doc_gen_graph.png", "wb") as f:
+            with open("src/graph_examples/doc_generator/doc_gen_graph.png", "wb") as f:
                 f.write(png_data)
         except Exception as e:
             self.logger.exception("Could not generate graph PNG: %s", e)

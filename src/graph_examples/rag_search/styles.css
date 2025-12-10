@@ -1,0 +1,31 @@
+.bordered-table table {
+    border-collapse: collapse !important;
+}
+
+.bordered-table table th,
+.bordered-table table td {
+    border: 1px solid #444 !important;
+    padding: 3px !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+}
+
+.bordered-table table th {
+    background-color: #0781f3 !important;
+    font-weight: bold !important;
+}
+
+.bordered-table table tr:hover {
+    background-color: #333 !important;
+}
+
+.bordered-table {
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+.bordered-table .gradio-dataframe,
+.bordered-table .dataframe {
+    max-height: none !important;
+    overflow: visible !important;
+}

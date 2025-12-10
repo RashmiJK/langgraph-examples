@@ -13,6 +13,7 @@ from langchain_community.document_loaders import (
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from graph_examples.logger import get_logger
+from graph_examples.rag_search.types import SearchResult
 
 # Suppress ExperimentalWarning from AzureAIChatCompletionsModel
 warnings.filterwarnings(
@@ -20,8 +21,28 @@ warnings.filterwarnings(
 )
 
 
-class IngestChroma:
+class ChromaInterface:
+    """
+    Interface to interact with Chroma vector store.
+    """
+
+    _instance: "ChromaInterface | None" = None
+
+    @classmethod
+    def get_instance(cls) -> "ChromaInterface":
+        """
+        Returns the singleton instance of ChromaInterface
+        """
+        # Use singleton to avoid multiple instances of embedding models
+        # and re-establishing API credentials
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
     def __init__(self):
+        """
+        Initialize the ChromaInterface
+        """
         self.embedding_3_small = None
         self.embedding_3_large = None
         self.client = None
@@ -141,3 +162,11 @@ class IngestChroma:
             f"{filename} (chunked size {size})"
             for filename, size in file_chunk_map.items()
         )
+
+    def search(self, query: str) -> list[SearchResult]:
+        """
+        Search for documents in the vector store
+        """
+        results = self.client.similarity_search_with_score(query, k=6)
+        self.logger.debug("Search results: %s", results)
+        return results
