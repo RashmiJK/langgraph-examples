@@ -37,7 +37,7 @@ The examples are currently configured to use GitHub Models via AzureAIChatComple
 If you wish to use a different provider (e.g., OpenAI, Azure OpenAI, or Anthropic), code changes are required.
 
 Example:
-1. Open graph_examples/doc_generator/doc_gen.py
+1. Open src/graph_examples/doc_generator/doc_gen.py
 2. Update the DocGen class initialization to use your preferred LangChain chat model.
 3. Update the model parameters to match your provider's available models.
 
@@ -48,19 +48,31 @@ Example:
         <td colspan="2" align="center"><strong><h2>LangGraph Examples</h2></strong></td>
     </tr>
     <tr>
-        <td> Document Generator</td>
-        <td> Next Example </td>
+        <td> <b>Document Generator</b></td>
+        <td> <b>Search and Reranking Analysis</b></td>
     </tr>
     <tr>
         <td>
-            <a href="src/graph_examples/doc_generator/doc_gen_graph.png"> <img src="src/graph_examples/doc_generator/doc_gen_graph.png" width="200" height="200"></a>   
-            <a href="src/graph_examples/doc_generator/doc_gen_ui.png"> <img src="src/graph_examples/doc_generator/doc_gen_ui.png" width="200" height="200"></a>
+            <a href="src/graph_examples/doc_generator/doc_gen_graph.png"> <img src="src/graph_examples/doc_generator/doc_gen_graph.png" width="175" height="175"></a>   
+            <a href="src/graph_examples/doc_generator/doc_gen_ui.png"> <img src="src/graph_examples/doc_generator/doc_gen_ui.png" width="175" height="175"></a>
         </td>
-        <td>            
+        <td>    
+            <a href="src/graph_examples/rag_search/rag_search_graph.png"> <img src="src/graph_examples/rag_search/rag_search_graph.png" width="175" height="175"></a>   
+            <a href="src/graph_examples/rag_search/rag_search_ui.png"> <img src="src/graph_examples/rag_search/rag_search_ui.png" width="175" height="175"></a>
         </td>
     </tr>
     <tr>
-        <td>From the repository root folder, execute: <code>uv run doc_gen</code></td>
-        <td></td>
+        <td><i>From the repository root folder, execute: <code>uv run doc_gen</code></i></td>
+        <td><i>From the repository root folder, execute: <code>uv run rag_search</code></i></td>
+    </tr>
+    <tr>
+    <td colspan="2" style="height: 10px"></td>
+    </tr>
+    <tr>
+        <td> <b>Next flow </b></td>
+        <td> <b>Next flow </b></td>
     </tr>
 </table>
+
+## 💡 Heads Up
+This repo grows as I learn. Mistakes happen, updates will follow, and perfection is not the goal — exploration is. Use it, break it, make it better!
