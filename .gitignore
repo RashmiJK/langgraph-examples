@@ -22,3 +22,6 @@ wheels/
 ChromaVectorStore/
 
 .DS_Store
+
+# cross-encoder model download
+.cache/

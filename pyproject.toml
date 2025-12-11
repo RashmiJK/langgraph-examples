@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "flashrank>=0.2.10",
     "fpdf>=1.7.2",
     "gradio==6.0.1",
     "grandalf>=0.8",

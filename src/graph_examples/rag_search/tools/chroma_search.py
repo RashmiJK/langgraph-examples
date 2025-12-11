@@ -7,7 +7,13 @@ from graph_examples.rag_search.types import SearchResult
 @tool
 def semantic_search(query: str) -> list[SearchResult]:
     """
-    Semantic search on ingested documents
+    Semantic search on ingested documents.
+
+    Args:
+        query (str): Query to search for
+
+    Returns:
+        list[SearchResult]: List of search results. Each result contains the document, source, and score.
     """
     chroma = ChromaInterface.get_instance()
     results = chroma.search(query)

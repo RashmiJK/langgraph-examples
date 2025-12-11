@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from graph_examples.logger import get_logger
 from graph_examples.rag_search.chroma_interface import ChromaInterface
 from graph_examples.rag_search.rag_search import RagSearch
-from graph_examples.rag_search.types import ListOfSearchedResults
 
 load_dotenv(override=True)
 logger = get_logger(__name__)
@@ -40,19 +39,22 @@ def describe_ingested_files() -> str:
 
 def backend_search_pipeline(
     query: str,
-) -> tuple[str, pd.DataFrame, pd.DataFrame]:
+) -> tuple[str, pd.DataFrame, pd.DataFrame, str]:
     """
     Mock function to simulate search.
     """
-    logger.info("Query: %s", query)
+    logger.debug("Query: %s", query)
 
     # validate query
     if not query or not query.strip():
         return "Please enter a search query.", [], []
 
     rag_search = RagSearch()
-    search_results, reranked_results = rag_search.respond(query)
-    logger.debug("Search results: %s %s", search_results, type(search_results))
+    search_results, reranked_results, baseline_answer, reranked_answer = (
+        rag_search.respond(query)
+    )
+    logger.debug("Search results:\n %s %s", search_results, type(search_results))
+    logger.info("Number of search results: %d", len(search_results.results))
 
     search_result_df = pd.DataFrame(
         {"Score": r.score, "Chunk Text": r.document, "Source": r.source}
@@ -61,7 +63,20 @@ def backend_search_pipeline(
     # search_result_df.sort_values(by="Score", inplace=True).reset_index(drop=True)
     logger.debug("Search results df:\n %s", search_result_df)
 
-    return query, search_result_df, []
+    logger.debug("Reranker results:\n %s %s", reranked_results, type(reranked_results))
+    logger.info("Number of reranker results: %d", len(reranked_results))
+    reranked_result_df = pd.DataFrame(
+        {
+            "Reranker Score": round(float(r["score"]), 2),
+            "Chunk Text": r["text"],
+            "Source": r["meta"]["source"],
+        }
+        for r in reranked_results
+    )
+    # search_result_df.sort_values(by="Score", inplace=True).reset_index(drop=True)
+    logger.debug("Reranker results df:\n %s", reranked_result_df)
+
+    return query, search_result_df, reranked_result_df, baseline_answer, reranked_answer
 
 
 def main() -> None:
@@ -157,23 +172,39 @@ def main() -> None:
                             interactive=False,
                             wrap=True,
                             show_row_numbers=True,
-                            elem_classes=["bordered-table"],
+                            # elem_classes=["bordered-table"],
+                        )
+                        answer_baseline_output = gr.Textbox(
+                            label="Answer (Uses Top 2 Search Results)",
+                            placeholder="Answer will be displayed here...",
+                            interactive=False,
+                            lines=4,
                         )
 
-                # Reranker Output
-                with gr.Column():
-                    gr.HTML(
-                        "<h4 style='color: #2563eb; margin-bottom: 10px;'>Stage 2: After Reranking (Top 6)</h4>"
-                    )
-                    reranked_results_output = gr.Dataframe(
-                        headers=["Re-Score", "Chunk Text", "Source"],
-                        datatype=["number", "str", "str"],
-                        row_count=6,
-                        column_count=3,
-                        column_widths=["10%", "70%", "20%"],
-                        interactive=False,
-                        wrap=True,
-                    )
+                with gr.Row():
+                    # Reranker Output
+                    with gr.Column():
+                        gr.HTML(
+                            "<h4 style='color: #2563eb; margin-bottom: 10px;'>Stage 2: After Reranking (Top 6)</h4>"
+                        )
+                        reranked_results_output = gr.Dataframe(
+                            headers=["ReRanker Score", "Chunk Text", "Source"],
+                            datatype=["number", "str", "str"],
+                            row_count="dynamic",
+                            column_count=3,
+                            column_widths=["80px", "600px", "200px"],
+                            max_height=None,
+                            interactive=False,
+                            wrap=True,
+                            show_row_numbers=True,
+                            # elem_classes=["bordered-table"],
+                        )
+                        answer_reranked_output = gr.Textbox(
+                            label="Answer (Uses Top 2 RerankedResults)",
+                            placeholder="Answer will be displayed here...",
+                            interactive=False,
+                            lines=4,
+                        )
 
         # Wire the Index Button
         index_btn.click(
@@ -189,7 +220,13 @@ def main() -> None:
             trigger(
                 fn=backend_search_pipeline,
                 inputs=[query_input],
-                outputs=[query_input, initial_results_output, reranked_results_output],
+                outputs=[
+                    query_input,
+                    initial_results_output,
+                    reranked_results_output,
+                    answer_baseline_output,
+                    answer_reranked_output,
+                ],
                 show_progress="full",
             )
 
