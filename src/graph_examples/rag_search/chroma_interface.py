@@ -10,10 +10,10 @@ from langchain_community.document_loaders import (
     TextLoader,
     UnstructuredMarkdownLoader,
 )
+from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from graph_examples.logger import get_logger
-from graph_examples.rag_search.types import SearchResult
 
 # Suppress ExperimentalWarning from AzureAIChatCompletionsModel
 warnings.filterwarnings(
@@ -39,13 +39,13 @@ class ChromaInterface:
             cls._instance = cls()
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the ChromaInterface
         """
         self.embedding_3_small = None
         self.embedding_3_large = None
-        self.client = None
+        self.client: Chroma | None = None
         self._intialize()
         self.logger = get_logger(__name__)
 
@@ -74,6 +74,8 @@ class ChromaInterface:
         Ingest documents and create embeddings.
         """
         # Get existing ids in the collection
+        if self.client is None:
+            raise RuntimeError("Chroma client is not initialized")
         existing_ids = self.client.get().get("ids", [])
         self.logger.info("Existing ids: %s", existing_ids)
 
@@ -97,6 +99,7 @@ class ChromaInterface:
             )
 
         file_type = Path(file).suffix.lower()
+        loader: PyPDFLoader | TextLoader | UnstructuredMarkdownLoader
 
         if file_type == ".pdf":
             loader = PyPDFLoader(file)
@@ -143,6 +146,8 @@ class ChromaInterface:
         Returns a summary of ingested content
         """
         # Get existing ids in the collection
+        if self.client is None:
+            raise RuntimeError("Chroma client is not initialized")
         existing_ids = self.client.get().get("ids", [])
 
         # dictionary to store filename with chunk size
@@ -163,10 +168,14 @@ class ChromaInterface:
             for filename, size in file_chunk_map.items()
         )
 
-    def search(self, query: str) -> list[SearchResult]:
+    def search(self, query: str) -> list[tuple[Document, float]]:
         """
         Search for documents in the vector store
         """
-        results = self.client.similarity_search_with_score(query, k=6)
+        if self.client is None:
+            raise RuntimeError("Chroma client is not initialized")
+        results: list[tuple[Document, float]] = (
+            self.client.similarity_search_with_score(query, k=6)
+        )
         self.logger.debug("Search results: %s", results)
         return results

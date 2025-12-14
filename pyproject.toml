@@ -15,10 +15,13 @@ dependencies = [
     "langchain-community>=0.4.1",
     "langchain-text-splitters>=1.0.0",
     "langgraph>=1.0.3",
+    "markdown>=3.10",
     "mermaid-python>=0.1",
+    "opik>=1.9.46",
     "pypdf>=6.4.0",
     "python-dotenv>=1.2.1",
     "tiktoken>=0.12.0",
+    "unstructured>=0.18.21",
 ]
 
 [tool.setuptools.packages.find]

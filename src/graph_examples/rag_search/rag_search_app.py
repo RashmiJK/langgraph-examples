@@ -12,7 +12,7 @@ load_dotenv(override=True)
 logger = get_logger(__name__)
 
 
-def ingest_documents(file_list: list, chunk_size: int):
+def ingest_documents(file_list: list[str], chunk_size: int) -> str:
     """
     Ingest documents and create embeddings.
     """
@@ -39,7 +39,7 @@ def describe_ingested_files() -> str:
 
 def backend_search_pipeline(
     query: str,
-) -> tuple[str, pd.DataFrame, pd.DataFrame, str]:
+) -> tuple[str, pd.DataFrame, pd.DataFrame, str, str]:
     """
     Mock function to simulate search.
     """
@@ -47,7 +47,7 @@ def backend_search_pipeline(
 
     # validate query
     if not query or not query.strip():
-        return "Please enter a search query.", [], []
+        return "Please enter a search query.", pd.DataFrame(), pd.DataFrame(), "", ""
 
     rag_search = RagSearch()
     search_results, reranked_results, baseline_answer, reranked_answer = (

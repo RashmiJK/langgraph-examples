@@ -102,7 +102,7 @@ class DocGen:
         )
         self._graph = self._build_workflow()
 
-    def _build_workflow(self) -> CompiledStateGraph[Any, Any, Any]:
+    def _build_workflow(self) -> CompiledStateGraph:
         """
         Build the workflow for the document generation.
         """
@@ -129,7 +129,7 @@ class DocGen:
         )
         workflow_builder.add_conditional_edges(
             "generate",
-            self._route_after_generation,
+            self._route_after_generation,  # type: ignore[arg-type]
             {
                 "eval_clarity": "eval_clarity",
                 "eval_relevance": "eval_relevance",
