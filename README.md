@@ -76,4 +76,4 @@ Example:
 </table>
 
 ## 💡 Heads Up
-This repo grows as I learn. Mistakes happen, updates will follow, and perfection is not the goal — exploration is. Use it, break it, make it better!
+This is a living repository. Expect regular updates as the design matures, new workflows are added, and existing workflows are refined.
