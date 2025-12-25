@@ -105,7 +105,7 @@ class ResearchTeam:
         workflow_builder = StateGraph(TeamState)
 
         # Add Nodes
-        workflow_builder.add_node("team_supervisor", self._team_supervisor)
+        workflow_builder.add_node("research_supervisor", self._team_supervisor)
         workflow_builder.add_node(
             "search_agent",
             lambda state: self._run_safe_agent(
@@ -120,9 +120,9 @@ class ResearchTeam:
         )
 
         # Add edges
-        workflow_builder.add_edge(START, "team_supervisor")
+        workflow_builder.add_edge(START, "research_supervisor")
         workflow_builder.add_conditional_edges(
-            "team_supervisor",
+            "research_supervisor",
             lambda state: state["next"],
             {
                 "search_agent": "search_agent",
@@ -130,8 +130,8 @@ class ResearchTeam:
                 "END": END,
             },
         )
-        workflow_builder.add_edge("search_agent", "team_supervisor")
-        workflow_builder.add_edge("scrape_agent", "team_supervisor")
+        workflow_builder.add_edge("search_agent", "research_supervisor")
+        workflow_builder.add_edge("scrape_agent", "research_supervisor")
 
         return workflow_builder.compile()
 

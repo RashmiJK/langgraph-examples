@@ -895,6 +895,22 @@ wheels = [
 ]
 
 [[package]]
+name = "deepgram-sdk"
+version = "5.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
+    { name = "typing-extensions" },
+    { name = "websockets" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2d/9c/4529cc5818e9305ac9be3c24545249ad57418cbc3736c3f1c0a8397b59f5/deepgram_sdk-5.3.0.tar.gz", hash = "sha256:4e682a53f64c26dc49d8fd70865eae1e98236d313870d1bcf5f107f125e53793", size = 148179, upload-time = "2025-11-03T15:24:02.436Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/58/e2/cda09edad156199cc9e330533f6b72cb5276c0d476cab7f1744be7ffa16e/deepgram_sdk-5.3.0-py3-none-any.whl", hash = "sha256:431418fdffbd93cdf6a78a168984e3df3cb696818ced1cfc52ce336e0bc6a7fe", size = 390669, upload-time = "2025-11-03T15:24:01.078Z" },
+]
+
+[[package]]
 name = "defusedxml"
 version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2071,6 +2087,7 @@ source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "ddgs" },
+    { name = "deepgram-sdk" },
     { name = "duckduckgo-search" },
     { name = "flashrank" },
     { name = "fpdf" },
@@ -2105,6 +2122,7 @@ dev = [
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "ddgs", specifier = ">=9.10.0" },
+    { name = "deepgram-sdk", specifier = ">=5.3.0" },
     { name = "duckduckgo-search", specifier = ">=8.1.1" },
     { name = "flashrank", specifier = ">=0.2.10" },
     { name = "fpdf", specifier = ">=1.7.2" },

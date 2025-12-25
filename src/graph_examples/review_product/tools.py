@@ -1,6 +1,9 @@
 import os
+import re
+from pathlib import Path
 
 import tiktoken
+from deepgram import DeepgramClient
 from dotenv import load_dotenv
 from langchain.tools import tool
 from langchain_community.document_loaders import WebBaseLoader, YoutubeLoader
@@ -15,6 +18,9 @@ from graph_examples.review_product.research_team_prompts import (
 
 load_dotenv(override=True)
 logger = get_logger(__name__)
+
+# Required for chunking text into clauses
+CLAUSE_BOUNDARIES = r"\.|\?|!|;|, (and|but|or|nor|for|yet|so)"
 
 # Enhanced DuckDuckGo tool described as privacy-focused search
 duckduckgo_search_tool = DuckDuckGoSearchResults(
@@ -126,3 +132,83 @@ def scrape_youtube(url: str) -> str:
         return f"<Transcripted video={url}>\n{response.content}\n</Transcripted>"
     except Exception as e:
         return f"Error scraping {url}: {str(e)}"
+
+
+@tool
+def write_file_tool(content: str, filename: str) -> str:
+    """
+    Writes the content to a file named `final_audio_script.txt`.
+
+    Args:
+        content (str): The content to be written to the file.
+
+    Returns:
+        str: A confirmation message.
+    """
+    filename = os.path.join(os.path.dirname(__file__), filename)
+    with open(filename, "w") as f:
+        f.write(content)
+    return "Script saved to " + filename
+
+
+@tool
+def text_to_speech_tool(filename: str) -> str:
+    """
+    Converts a saved text file into audio speech.
+
+    Args:
+        filename (str): The name of the file to convert.
+                        MUST include the extension (e.g., 'robovac_comparison.txt').
+
+    Returns:
+        str: A confirmation message.
+    """
+    filename = os.path.join(os.path.dirname(__file__), filename)
+    try:
+        with open(filename, "r") as f:
+            file_content = f.read()
+    except FileNotFoundError:
+        return f"Error: The file {filename} was not found"
+    except Exception as e:
+        return f"Error reading {filename}: {str(e)}"
+
+    # Chunk by clause boundaries
+    def chunk_text_by_clause(text: str) -> list[str]:
+        """
+        Splits the text into clauses.
+        """
+        clause_boundaries = re.finditer(CLAUSE_BOUNDARIES, text)
+        boundary_indices = [boundary.start() for boundary in clause_boundaries]
+
+        chunks = []
+        start = 0
+        for boundary_index in boundary_indices:
+            chunks.append(text[start : boundary_index + 1].strip())
+            start = boundary_index + 1
+        chunks.append(text[start:].strip())
+        return chunks
+
+    deepgram = DeepgramClient(api_key=os.getenv("DEEPGRAM_API_KEY"))
+
+    text_chunks = chunk_text_by_clause(file_content)
+    audio_filename = str(Path(filename).with_suffix(".mp3"))
+    logger.info("Preparing to convert text to speech into %s", audio_filename)
+
+    with open(audio_filename, "wb") as f:
+        pass  # create an empty file
+
+    for i, text_chunk in enumerate(text_chunks):
+        logger.info(f"Processing chunk {i + 1}, {len(text_chunk)} characters")
+
+        if len(text_chunk):
+            response = deepgram.speak.v1.audio.generate(
+                text=text_chunk, model="aura-2-thalia-en"
+            )
+
+            with open(audio_filename, "ab") as f:
+                for audio_chunk in response:
+                    f.write(audio_chunk)
+            logger.info(f"Appended chunk {i + 1} to {audio_filename}")
+
+    logger.info(f"Final audio saved to {audio_filename}")
+    return f"Audio saved to {audio_filename}"
