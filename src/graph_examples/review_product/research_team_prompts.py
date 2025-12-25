@@ -1,5 +1,9 @@
 from langchain_core.messages import SystemMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+)
 
 SYSTEM_PROMPT_FOR_SEARCH_AGENT = SystemMessage(
     content="""
@@ -7,7 +11,11 @@ You have two search tools:
 - duckduckgo_results_json: Use for general research, unbiased results, privacy search requests
 - tavily_search: Use for news, current events, comparisons
 
-Choose the best tool for each query. Your FINAL response must be ONLY a JSON list of strings containing the URLs found.
+**TASK:**
+Find exactly 4 high-quality URLs which are reputable sources relevant to the user's query.
+
+**OUTPUT FORMAT:**
+Your FINAL response must be ONLY a JSON list of strings containing the URLs found.
 """
 )
 
@@ -23,9 +31,10 @@ INSTRUCTIONS:
 2. EXECUTION: Attempt to scrape *all* provided URLs.
 
 OUTPUT FORMAT:
-- **Synthesize & Condense**: Do NOT return raw text. Create a concise summary for each source focusing strictly on product comparisons, unique features, pros/cons, and real-world performance.
-- **Audio Prep**: Prioritize "talking points" and anecdotal details that make for engaging spoken audio (e.g., specific reviewer complaints or praises).
-- **Exclude Noise**: Remove all navigation, ads, and irrelevant boilerplate to minimize token usage.
+- **Generate Summary**: Do NOT just list facts. Write concise summary that explain *why* the reviewer liked/disliked the product. Retain technical nuances and specific examples.
+- **Capture the "Voice"**: If the reviewer was excited, angry, or skeptical, capture that emotions in the notes. This is crucial for the audio script's personality.
+- **Audio Gold**: Explicitly separate out "Direct Quotes" that are catchy or punchy.
+- **No Fluff**: Ignore site navigation/ads, but keep *every* relevant detail about the product experience.
 """
 )
 
@@ -49,15 +58,22 @@ Who should act next? Respond with ONLY one of: "search_agent", "scrape_agent", "
     ]
 )
 
-SUMMARY_CREATE_SYSTEM_PROMPT = SystemMessage(
-    content="""
+SUMMARY_CREATE_SYSTEM_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        SystemMessage(
+            content="""
 You are an expert in summarizing content.
 
-TASK: Summarize the provided content into a structured format.
-
+TASK: Create a strictly minimal summary of the core facts.
+**Instructions**
 1. **Filter Noise**: Ignore all navigation, ads, and filler.
 2. **Extract Insights**: Focus on strong opinions, direct comparisons ("better than X"), and real-world testing results.
 3. **Capture Tone**: Preserve the reviewer's sentiment and any specific, quotable anecdotes.
 4. **Pros & Cons**: Key strengths and weaknesses.
 """
+        ),
+        HumanMessagePromptTemplate.from_template(
+            """ Content to summarize: {scraped_content} """
+        ),
+    ]
 )

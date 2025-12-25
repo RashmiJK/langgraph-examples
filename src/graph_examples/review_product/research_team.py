@@ -1,4 +1,5 @@
 import os
+import re
 
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ProviderStrategy
@@ -55,7 +56,7 @@ class ResearchTeam:
         self.logger = get_logger(__name__)
 
         self.gllm_4_1 = ChatOpenAI(
-            model_name="openai/gpt-4.1",  # Highest reasoning and accuracy.
+            model_name="openai/gpt-4o-mini",  # gpt-4.1, gpt-4o # Highest reasoning and accuracy.
             api_key=os.getenv("GITHUB_TOKEN"),
             base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),  # GitHub Models endpoint
         )
@@ -144,11 +145,18 @@ class ResearchTeam:
             else:
                 output = str(llm_output).strip()
 
-            if output not in ["search_agent", "scrape_agent", "END"]:
-                self.logger.warning(
-                    "Invalid output from team supervisor: %s. Forcing END", output
-                )
-                output = "END"
+            # Look for one of the valid terms anywhere in the string
+            match = re.search(r"(search_agent|scrape_agent|END)", output)
+
+            if match:
+                output = match.group(1)
+                self.logger.debug("Parsed supervisor output: %s", output)
+                return {"next": output}
+
+            self.logger.warning(
+                "Invalid output from team supervisor: %s. Forcing END", output
+            )
+            output = "END"
 
             return {"next": output}
 
@@ -160,6 +168,7 @@ class ResearchTeam:
         """Run an agent safely"""
         try:
             result = agent.invoke(state)
+            self.logger.debug("Result from %s: %s", name, result)
             if not isinstance(result, dict) or "messages" not in result:
                 self.logger.warning("Invalid output from %s: %s.", name, result)
             return {

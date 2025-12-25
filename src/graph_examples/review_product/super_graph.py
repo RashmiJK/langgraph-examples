@@ -10,7 +10,7 @@ response = research_team.invoke(
             HumanMessage(content="Hello"),
             HumanMessage(content="How are you?"),
             HumanMessage(
-                content="Which one should I buy? eufy E28 Robot vaccum or Dyson Spot Scrub AI robot vaccum?"
+                content="Which one should I buy? eufy E28 Robot vaccum or Dyson Spot Scrub AI robot vaccum? Include youtube as well in your research"
             ),
         ]
     }

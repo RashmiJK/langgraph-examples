@@ -8,11 +8,13 @@ from langchain_community.tools import DuckDuckGoSearchResults
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilyExtract, TavilySearch
 
+from graph_examples.logger import get_logger
 from graph_examples.review_product.research_team_prompts import (
     SUMMARY_CREATE_SYSTEM_PROMPT,
 )
 
 load_dotenv(override=True)
+logger = get_logger(__name__)
 
 # Enhanced DuckDuckGo tool described as privacy-focused search
 duckduckgo_search_tool = DuckDuckGoSearchResults(
@@ -42,7 +44,7 @@ _SUMMARY_LLM = ChatOpenAI(
     base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
 )
 _ENCODER = tiktoken.get_encoding("cl100k_base")
-_MAX_TOKENS = 8000
+_MAX_TOKENS = 7000
 
 
 @tool
@@ -80,10 +82,12 @@ def scrape_webpage(url: str) -> str:
 
         if len(encoded_tokens) > _MAX_TOKENS:
             full_content = _ENCODER.decode(encoded_tokens[:_MAX_TOKENS])
+            logger.debug("Content truncated to %s length", len(full_content))
 
         # Summarize the content
         summary_chain = SUMMARY_CREATE_SYSTEM_PROMPT | _SUMMARY_LLM
-        response = summary_chain.invoke(full_content)
+        response = summary_chain.invoke({"scraped_content": full_content})
+        logger.debug("Response from scrape_webpage: %s", response.model_dump())
         return f"<Document scrape={url}>\n{response.content}\n</Document>"
     except Exception as e:
         return f"Error scraping {url}: {str(e)}"
@@ -117,7 +121,8 @@ def scrape_youtube(url: str) -> str:
 
         # Summarize the content
         summary_chain = SUMMARY_CREATE_SYSTEM_PROMPT | _SUMMARY_LLM
-        response = summary_chain.invoke(transcibed_content)
+        response = summary_chain.invoke({"scraped_content": transcibed_content})
+        logger.debug("Response from scrape_youtube: %s", response.model_dump())
         return f"<Transcripted video={url}>\n{response.content}\n</Transcripted>"
     except Exception as e:
         return f"Error scraping {url}: {str(e)}"

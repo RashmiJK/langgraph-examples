@@ -32,6 +32,7 @@ GITHUB_INFERENCE_ENDPOINT="<github_inference_endpoint>"
 GITHUB_TOKEN="<github_token>"
 LOG_LEVEL="<log_level>"
 OPIK_API_KEY="<opik_api_key>" # Optional for observability
+TAVILY_API_KEY="<tavily_api_key>"
 ```
 The examples are currently configured to use GitHub Models via AzureAIChatCompletionsModel.
 
