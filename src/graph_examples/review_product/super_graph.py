@@ -1,10 +1,7 @@
 from langchain_core.messages import HumanMessage
 
 from graph_examples.review_product.research_team import ResearchTeam
-from graph_examples.review_product.production_team import (
-    audio_synthesis_agent,
-    content_writing_agent,
-)
+from graph_examples.review_product.production_team import ProductionTeam
 
 """
 research_team = ResearchTeam(trace_project_name="ReviewProduct").as_node()
@@ -41,11 +38,29 @@ response = content_writing_agent.invoke(
 print(type(response))
 print(response)
 """
-
+"""
 response = audio_synthesis_agent.invoke(
     {
         "messages": [
             HumanMessage(content="Script saved to final_audio_script.txt"),
+        ]
+    }
+)
+
+print(type(response))
+print(response)
+"""
+
+production_team = ProductionTeam(trace_project_name="ReviewProduct").as_node()
+
+response = production_team.invoke(
+    {
+        "messages": [
+            HumanMessage(content="Hello"),
+            HumanMessage(content="How are you?"),
+            HumanMessage(
+                content='{"results":[{"url":"https://www.pcmag.com/reviews/eufy-omni-e28","content":"**Eufy Omni E28 Robot Vacuum (PCMag Summary)**\\n\\n- **Key Features**: Hybrid robot that vacuums, mops, *and* converts into a portable spot cleaner (similar to a carpet shampoo machine).\\n- **Pros**:\\n    - Unique spot cleaning mode is a serious advantage for tough stains.\\n    - Good overall cleaning on hard floors and carpets.\\n    - Solid navigation and mapping with LiDAR+AI.\\n    - App offers robust controls (custom cleaning zones, scheduling, integration).\\n    - Detachable base for spot cleaning is easy to use and quick to set up.\\n- **Cons**:\\n    - Pricey for mid-tier performance: neither the best vacuum nor mop on the market.\\n    - No automatic dustbin emptying; manual removal needed more often.\\n    - Spot cleaning uses a lot of water: tanks require frequent refills for large messes.\\n    - Tall LiDAR turret has clearance issues under low furniture.\\n    - App and navigation can sometimes struggle with odd-shaped rooms/closed doors.\\n- **Real-World Feedback**:\\n    - Excellent for families with pets/kids, especially messy households.\\n    - If you value low maintenance and never want to manually spot clean, rivals may be more convenient. If you want multi-function and occasional deep cleaning, this is a unique solution.\\n- **Summary**: Not the absolute top performer in either sweeping or mopping, but the spot cleaner mode is unrivaled. Ideal if versatility matters most."},{"url":"https://www.theverge.com/22997597/best-robot-vacuum-cleaner","content":"**The Verge – Best Robot Vacuum Cleaner General Insights**\\n\\n- Dyson’s newest robot vacuums (like the Spot Scrub AI) emphasize advanced AI for navigation, effective avoidance of obstacles, and powerful suction, but are typically *very expensive*. Known for elegant hardware and clever mapping, but sometimes frustrating software and nose-high prices.\\n- Eufy’s robots are generally favored for reliability and value, offering strong suction and sturdy mid-tier performance. Features like hybrid mopping or detachable bases are attractive for busy households, but Eufy does not compete with Dyson’s navigation/mapping sophistication.\\n- The *trade-off*: Eufy can be an excellent value—especially for spot cleaning versatility—but if you want the “smartest” robot (especially multi-room mapping, complex schedules, and boundary recognition), Dyson’s Spot Scrub AI is probably the leader. Both brands have minor quirks like getting stuck under furniture or leaving streaks after mopping.\\n- **Neither is perfect**: Dyson is for tech-lovers who want maximum autonomy and polish; Eufy targets those who want hybrid use and a reasonable price."}]}'
+            ),
         ]
     }
 )
