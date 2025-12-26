@@ -65,7 +65,7 @@ class BaseTeam(ABC):
     ) -> dict:
         """Run an agent safely"""
         try:
-            result = agent.invoke(state)
+            result = agent.invoke(state, config={"recursion_limit": 5})
             self.logger.debug("Result from %s: %s", agent_name, result)
 
             if not isinstance(result, dict) or "messages" not in result:

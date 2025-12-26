@@ -1,22 +1,16 @@
-import os
-import re
 from functools import partial
 
 from langchain.agents import create_agent
-from langchain_core.messages import AnyMessage, HumanMessage
-from langchain_openai import ChatOpenAI
-from langgraph.graph import END, START, MessagesState, StateGraph
+from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-from opik.integrations.langchain import OpikTracer
 
-from graph_examples.logger import get_logger
+from graph_examples.review_product.base_team_class import BaseTeam, BaseTeamState
 from graph_examples.review_product.production_team_prompts import (
     PRODUCTION_TEAM_SUPERVISOR_PROMPT,
     SYSTEM_PROMPT_FOR_AUDIO_SYNTHESIS_AGENT,
     SYSTEM_PROMPT_FOR_CONTENT_WRITING_AGENT,
 )
 from graph_examples.review_product.tools import text_to_speech_tool, write_file_tool
-from graph_examples.review_product.base_team_class import BaseTeam, BaseTeamState
 
 
 class ProductionTeamState(BaseTeamState):
