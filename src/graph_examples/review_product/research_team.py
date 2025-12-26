@@ -1,16 +1,12 @@
-import os
-import re
+from functools import partial
 
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ProviderStrategy
-from langchain_core.messages import AnyMessage, HumanMessage
-from langchain_openai import ChatOpenAI
-from langgraph.graph import END, START, MessagesState, StateGraph
+from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-from opik.integrations.langchain import OpikTracer
 from pydantic import BaseModel, Field
 
-from graph_examples.logger import get_logger
+from graph_examples.review_product.base_team_class import BaseTeam, BaseTeamState
 from graph_examples.review_product.research_team_prompts import (
     RESEARCH_TEAM_SUPERVISOR_PROMPT,
     SYSTEM_PROMPT_FOR_SEARCH_AGENT,
@@ -25,8 +21,8 @@ from graph_examples.review_product.tools import (
 )
 
 
-class TeamState(MessagesState):
-    next: str
+class ResearchTeamState(BaseTeamState):
+    pass
 
 
 class UrlsList(BaseModel):
@@ -43,7 +39,7 @@ class WebScrapeResult(BaseModel):
     )
 
 
-class ResearchTeam:
+class ResearchTeam(BaseTeam):
     """
     A modulear class representing the Research Department.
     It encapsulates its own state, tools, and graph logic.
@@ -53,25 +49,7 @@ class ResearchTeam:
         """
         Initialize the ResearchTeam with members.
         """
-        self.logger = get_logger(__name__)
-
-        self.gllm_4_1 = ChatOpenAI(
-            model_name="openai/gpt-4o-mini",  # gpt-4.1, gpt-4o # Highest reasoning and accuracy.
-            api_key=os.getenv("GITHUB_TOKEN"),
-            base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),  # GitHub Models endpoint
-        )
-
-        self.gllm_41_mini = ChatOpenAI(
-            model_name="openai/gpt-4.1-mini",  # Balanced reasoning and accuracy
-            api_key=os.getenv("GITHUB_TOKEN"),
-            base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
-        )
-
-        self.gllm_41_nano = ChatOpenAI(
-            model_name="openai/gpt-4.1-nano",  # Lower reasoning and accuracy
-            api_key=os.getenv("GITHUB_TOKEN"),
-            base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
-        )
+        super().__init__()
 
         self.url_search_agent = create_agent(
             model=self.gllm_4_1,
@@ -86,23 +64,16 @@ class ResearchTeam:
             response_format=ProviderStrategy(WebScrapeResult),
         )
 
+        # Build graph
         self._graph = self._build_graph()
 
-        # optional tracing
-        self._tracer = None
-        if os.getenv("OPIK_API_KEY"):
-            try:
-                self._tracer = OpikTracer(
-                    graph=self._graph.get_graph(xray=True),
-                    project_name=trace_project_name,
-                )
-            except Exception as e:
-                self.logger.warning("Failed to initialize tracer: %s", e)
+        # Setup optional tracing
+        self._tracer = self._setup_tracer(self._graph, trace_project_name)
 
     def _build_graph(self) -> CompiledStateGraph:
         """Construct the internal StateGraph for research team"""
         # Build the graph
-        workflow_builder = StateGraph(TeamState)
+        workflow_builder = StateGraph(ResearchTeamState)
 
         # Add Nodes
         workflow_builder.add_node("research_supervisor", self._team_supervisor)
@@ -135,71 +106,14 @@ class ResearchTeam:
 
         return workflow_builder.compile()
 
-    def _team_supervisor(self, state: TeamState) -> TeamState:
+    def _team_supervisor(self, state: ResearchTeamState) -> ResearchTeamState:
         """Team supervisor to determine next action"""
+        valid_agents = ["search_agent", "scrape_agent"]
 
-        def parse_output(llm_output: AnyMessage) -> dict:
-            """Parse the output to get the next action"""
-            if hasattr(llm_output, "content"):
-                output = llm_output.content.strip()
-            else:
-                output = str(llm_output).strip()
-
-            # Look for one of the valid terms anywhere in the string
-            match = re.search(r"(search_agent|scrape_agent|END)", output)
-
-            if match:
-                output = match.group(1)
-                self.logger.debug("Parsed supervisor output: %s", output)
-                return {"next": output}
-
-            self.logger.warning(
-                "Invalid output from team supervisor: %s. Forcing END", output
-            )
-            output = "END"
-
-            return {"next": output}
-
-        chain = RESEARCH_TEAM_SUPERVISOR_PROMPT | self.gllm_4_1 | parse_output
+        chain = (
+            RESEARCH_TEAM_SUPERVISOR_PROMPT
+            | self.gllm_4_1
+            | partial(self._parse_supervisor_output, valid_agents=valid_agents)
+        )
 
         return chain.invoke(state)
-
-    def _run_safe_agent(self, agent, state: TeamState, name):
-        """Run an agent safely"""
-        try:
-            result = agent.invoke(state)
-            self.logger.debug("Result from %s: %s", name, result)
-            if not isinstance(result, dict) or "messages" not in result:
-                self.logger.warning("Invalid output from %s: %s.", name, result)
-            return {
-                "messages": [
-                    HumanMessage(content=result["messages"][-1].content, name=name)
-                ]
-            }
-        except Exception as e:
-            self.logger.error("Failed to run %s: %s", name, e)
-            return {
-                "messages": [
-                    HumanMessage(
-                        content=f"Error occured in {name}: {str(e)}", name=name
-                    )
-                ]
-            }
-
-    # public interface
-    def as_node(self):
-        """Adapts this class to be used as a single node in a larger graph"""
-
-        def enter_chain(state: dict) -> dict:
-            """Read the last message from the state to initialize the sub-graph."""
-            return {"messages": state["messages"][-1]}
-
-        def exit_chain(state: dict) -> dict:
-            """Extract the final result from the sub-graph to update the parent state."""
-            return {"messages": [state["messages"][-1]]}
-
-        # return chain that enters and exits this team's scope
-        chain = enter_chain | self._graph | exit_chain
-        if self._tracer:
-            return chain.with_config({"callbacks": [self._tracer]})
-        return chain

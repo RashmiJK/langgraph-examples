@@ -1,5 +1,6 @@
 import os
 import re
+from functools import partial
 
 from langchain.agents import create_agent
 from langchain_core.messages import AnyMessage, HumanMessage
@@ -15,13 +16,14 @@ from graph_examples.review_product.production_team_prompts import (
     SYSTEM_PROMPT_FOR_CONTENT_WRITING_AGENT,
 )
 from graph_examples.review_product.tools import text_to_speech_tool, write_file_tool
+from graph_examples.review_product.base_team_class import BaseTeam, BaseTeamState
 
 
-class ProductionTeamState(MessagesState):
-    next: str
+class ProductionTeamState(BaseTeamState):
+    pass
 
 
-class ProductionTeam:
+class ProductionTeam(BaseTeam):
     """
     A modular class representing the Production Department.
     It encapsulates its own state, tools, and graph logic.
@@ -31,25 +33,7 @@ class ProductionTeam:
         """
         Initialize the ProductionTeam with members.
         """
-        self.logger = get_logger(__name__)
-
-        self.gllm_4_1 = ChatOpenAI(
-            model_name="openai/gpt-4o-mini",  # gpt-4.1, gpt-4o # Highest reasoning and accuracy.
-            api_key=os.getenv("GITHUB_TOKEN"),
-            base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),  # GitHub Models endpoint
-        )
-
-        self.gllm_41_mini = ChatOpenAI(
-            model_name="openai/gpt-4.1-mini",  # Balanced reasoning and accuracy
-            api_key=os.getenv("GITHUB_TOKEN"),
-            base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
-        )
-
-        self.gllm_41_nano = ChatOpenAI(
-            model_name="openai/gpt-4.1-nano",  # Lower reasoning and accuracy
-            api_key=os.getenv("GITHUB_TOKEN"),
-            base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
-        )
+        super().__init__()
 
         self.content_writing_agent = create_agent(
             model=self.gllm_41_mini,
@@ -66,15 +50,7 @@ class ProductionTeam:
         self._graph = self._build_graph()
 
         # optional tracing
-        self._tracer = None
-        if os.getenv("OPIK_API_KEY"):
-            try:
-                self._tracer = OpikTracer(
-                    graph=self._graph.get_graph(xray=True),
-                    project_name=trace_project_name,
-                )
-            except Exception as e:
-                self.logger.warning("Failed to initialize tracer: %s", e)
+        self._tracer = self._setup_tracer(self._graph, trace_project_name)
 
     def _build_graph(self) -> CompiledStateGraph:
         """Construct the internal StateGraph for production team"""
@@ -114,78 +90,12 @@ class ProductionTeam:
 
     def _team_supervisor(self, state: ProductionTeamState) -> ProductionTeamState:
         """Team supervisor to determine next action"""
+        valid_agents = ["content_writing_agent", "audio_synthesis_agent"]
 
-        def parse_output(llm_output: AnyMessage) -> dict:
-            """Parse the output to get the next action"""
-            if hasattr(llm_output, "content"):
-                output = llm_output.content.strip()
-            else:
-                output = str(llm_output).strip()
-
-            # Look for one of the valid terms anywhere in the string
-            match = re.search(
-                r"(content_writing_agent|audio_synthesis_agent|END)", output
-            )
-
-            if match:
-                output = match.group(1)
-                self.logger.debug("Parsed supervisor output: %s", output)
-                return {"next": output}
-
-            self.logger.warning(
-                "Invalid output from team supervisor: %s. Forcing END", output
-            )
-            output = "END"
-
-            return {"next": output}
-
-        chain = PRODUCTION_TEAM_SUPERVISOR_PROMPT | self.gllm_4_1 | parse_output
+        chain = (
+            PRODUCTION_TEAM_SUPERVISOR_PROMPT
+            | self.gllm_4_1
+            | partial(self._parse_supervisor_output, valid_agents=valid_agents)
+        )
 
         return chain.invoke(state)
-
-    def _run_safe_agent(self, agent, state: ProductionTeamState, agent_name: str):
-        """Run an agent safely, handling errors and logging"""
-        try:
-            result = agent.invoke(state)
-            self.logger.debug("Result from %s: %s", agent_name, result)
-
-            if not isinstance(result, dict) or "messages" not in result:
-                self.logger.warning("Invalid result from %s: %s", agent_name, result)
-
-            return {
-                "messages": [
-                    HumanMessage(
-                        content=result["messages"][-1].content, name=agent_name
-                    )
-                ]
-            }
-        except Exception as e:
-            self.logger.error("Agent %s failed with error: %s", agent_name, e)
-            return {
-                "messages": [
-                    HumanMessage(
-                        content=f"Agent {agent_name} failed with error: {e}",
-                        name=agent_name,
-                    )
-                ]
-            }
-
-    # public methods
-    def as_node(self):
-        """Adapts this class to be used as a single node in a larger graph"""
-
-        def enter_chain(state: dict) -> dict:
-            """Read the last message from the state to initialize the sub-graph."""
-            return {"messages": state["messages"][-1]}
-
-        def exit_chain(state: dict) -> dict:
-            """Extract the final result from the sub-graph to update the parent state"""
-            return {"messages": [state["messages"][-1]]}
-
-        # returns chain that enters and exits this team's scope
-        chain = enter_chain | self._graph | exit_chain
-
-        if self._tracer:
-            return chain.with_config({"callbacks": [self._tracer]})
-
-        return chain
