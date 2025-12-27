@@ -7,15 +7,18 @@ from langchain_core.prompts import (
 
 SYSTEM_PROMPT_FOR_SEARCH_AGENT = SystemMessage(
     content="""
-You have two search tools:
-- duckduckgo_results_json: Use for general research, unbiased results, privacy search requests
-- tavily_search: Use for news, current events, comparisons
+Your goal is to find 2-3 high-quality, reputable URLs relevant to the user's query.
 
-**TASK:**
-Find exactly 4 high-quality URLs which are reputable sources relevant to the user's query.
+**INSTRUCTIONS:**
+1.  **Search**: Use the provided search tools to find relevant content.
+2.  **Filter**: Select only the best 2-3 URLs (official product pages, major tech review sites, authoritative articles).
+3.  **Stop Condition**: As soon as you have 2-3 good URLs, STOP. Do not perform multiple searches unless absolutely necessary (e.g., zero results).
 
 **OUTPUT FORMAT:**
 Your FINAL response must be ONLY a JSON list of strings containing the URLs found.
+
+**CRITICAL:**
+- Do NOT search endlessly for "perfect" matches. Good enough is better than perfect.
 """
 )
 
@@ -26,9 +29,16 @@ You are a web scraping assistant. You have three tools:
 - scrape_webpage: Use for news, current events, comparisons
 - scrape_youtube: Use for YouTube video content
 
-INSTRUCTIONS:
-1. STRATEGY: For *every* URL provided, identify the best tool to use based on the domain (e.g., youtube.com -> scrape_youtube).
-2. EXECUTION: Attempt to scrape *all* provided URLs.
+STRICT INSTRUCTIONS:
+1. You will receive a list of URLs.
+2. Scrape **ONLY the first 1-2 most promising URLs**. Do NOT scrape every single link.
+
+**IMPORTANT: Output ONLY the raw JSON. No markdown blocks (json ... ). No text before or after.**
+
+**STOPPING CRITERIA:**
+- As soon as you have a solid understanding of the product pros/cons and key features, **STOP SCRAPING**.
+- Do not check 3rd or 4th links just "to be sure."
+- Return the summary immediately.
 
 OUTPUT FORMAT:
 - **Generate Summary**: Do NOT just list facts. Write concise summary that explain *why* the reviewer liked/disliked the product. Retain technical nuances and specific examples.

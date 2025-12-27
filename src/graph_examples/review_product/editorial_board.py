@@ -47,14 +47,15 @@ class EditorialBoard:
         )
 
         # Instantiate ResearchTeam and ProductionTeam
-        self.research_team = ResearchTeam(trace_project_name).as_node()
-        self.production_team = ProductionTeam(trace_project_name).as_node()
+        self.research_team = ResearchTeam()
+        self.production_team = ProductionTeam()
 
         # Build graph
         self._graph = self._build_graph()
 
         # optional tracing
-        if trace_project_name and os.getenv("OPENAI_API_KEY"):
+        self._tracer = None
+        if trace_project_name and os.getenv("OPIK_API_KEY"):
             try:
                 # Instantiate OpikTracer
                 self._tracer = OpikTracer(
@@ -71,8 +72,10 @@ class EditorialBoard:
 
         # Add nodes
         editorial_board_graph.add_node("chief_editor", self._chief_editor)
-        editorial_board_graph.add_node("research_team", self.research_team)
-        editorial_board_graph.add_node("production_team", self.production_team)
+        editorial_board_graph.add_node("research_team", self.research_team.as_node())
+        editorial_board_graph.add_node(
+            "production_team", self.production_team.as_node()
+        )
 
         # Add edges
         editorial_board_graph.add_edge(START, "chief_editor")
@@ -119,18 +122,20 @@ class EditorialBoard:
 
         chain = (
             CHIEF_EDITOR_PROMPT
-            | self.gllm_4_1
+            | self.gllm_41_nano
             | partial(parse_chief_editor_output, valid_agents=valid_agents)
         )
 
         return chain.invoke(state)
 
-    def respond(self, query: str, recursion_limit: int = 20):
+    def respond(self, query: str, recursion_limit: int = 35):
         """
         Public helper function to run the system
         """
         initial_state = {"messages": [HumanMessage(content=query)]}
+        config = {"recursion_limit": recursion_limit}
 
-        return self._graph.invoke(
-            initial_state, config={"recursion_limit": recursion_limit}
-        )
+        if self._tracer:
+            config["callbacks"] = [self._tracer]
+
+        return self._graph.invoke(initial_state, config=config)

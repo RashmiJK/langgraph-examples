@@ -72,5 +72,5 @@ print(response)
 
 main_editorial_board = EditorialBoard(trace_project_name="NewReviewProduct")
 main_editorial_board.respond(
-    "What is the best univeristy to study economics, kings college or London School of Economics?"
+    "Compare Ninja MAX AF air fryer and Philips 3000 Series air fryer. Which one is better? "
 )

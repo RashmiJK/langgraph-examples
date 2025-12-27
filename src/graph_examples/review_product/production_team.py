@@ -23,7 +23,7 @@ class ProductionTeam(BaseTeam):
     It encapsulates its own state, tools, and graph logic.
     """
 
-    def __init__(self, trace_project_name: str = None):
+    def __init__(self):
         """
         Initialize the ProductionTeam with members.
         """
@@ -42,9 +42,6 @@ class ProductionTeam(BaseTeam):
         )
 
         self._graph = self._build_graph()
-
-        # optional tracing
-        self._tracer = self._setup_tracer(self._graph, trace_project_name)
 
     def _build_graph(self) -> CompiledStateGraph:
         """Construct the internal StateGraph for production team"""
@@ -88,7 +85,7 @@ class ProductionTeam(BaseTeam):
 
         chain = (
             PRODUCTION_TEAM_SUPERVISOR_PROMPT
-            | self.gllm_4_1
+            | self.gllm_41_nano
             | partial(self._parse_supervisor_output, valid_agents=valid_agents)
         )
 

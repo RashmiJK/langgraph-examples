@@ -25,7 +25,7 @@ class BaseTeam(ABC):
 
         # Initialize LLMs
         self.gllm_4_1 = ChatOpenAI(
-            model_name="openai/gpt-4o-mini",  # gpt-4.1, gpt-4o # Highest reasoning and accuracy.
+            model_name="openai/gpt-4o",  # gpt-4.1, gpt-4o # Highest reasoning and accuracy.
             api_key=os.getenv("GITHUB_TOKEN"),
             base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),  # GitHub Models endpoint
         )
@@ -42,6 +42,7 @@ class BaseTeam(ABC):
             base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
         )
 
+    # Not using at the moment
     def _setup_tracer(
         self, graph: CompiledStateGraph = None, tracer_project_name: str = None
     ):
@@ -65,7 +66,7 @@ class BaseTeam(ABC):
     ) -> dict:
         """Run an agent safely"""
         try:
-            result = agent.invoke(state, config={"recursion_limit": 5})
+            result = agent.invoke(state, config={"recursion_limit": 10})
             self.logger.debug("Result from %s: %s", agent_name, result)
 
             if not isinstance(result, dict) or "messages" not in result:
@@ -112,7 +113,7 @@ class BaseTeam(ABC):
         )
         return {"next": "END"}
 
-    def as_node(self):
+    def as_node(self, tracer: OpikTracer = None):
         """Shared adapter logic for sub-graph integration into super graph"""
 
         def enter_chain(state: dict) -> dict:
@@ -126,8 +127,8 @@ class BaseTeam(ABC):
 
         # return chain that enters and exits this team's scope
         chain = enter_chain | self._graph | exit_chain
-        if self._tracer:
-            return chain.with_config({"callbacks": [self._tracer]})
+        if tracer:
+            return chain.with_config({"callbacks": [tracer]})
         return chain
 
     @abstractmethod

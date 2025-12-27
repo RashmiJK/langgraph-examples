@@ -45,20 +45,20 @@ class ResearchTeam(BaseTeam):
     It encapsulates its own state, tools, and graph logic.
     """
 
-    def __init__(self, trace_project_name: str = None):
+    def __init__(self):
         """
         Initialize the ResearchTeam with members.
         """
         super().__init__()
 
         self.url_search_agent = create_agent(
-            model=self.gllm_4_1,
+            model=self.gllm_41_nano,
             tools=[duckduckgo_search_tool, tavily_search_tool],
             system_prompt=SYSTEM_PROMPT_FOR_SEARCH_AGENT,
             response_format=ProviderStrategy(UrlsList),
         )
         self.url_scrape_agent = create_agent(
-            model=self.gllm_4_1,
+            model=self.gllm_41_nano,
             tools=[tavily_extract_tool, scrape_webpage, scrape_youtube],
             system_prompt=SYSTEM_PROMPT_FOR_URL_SCRAPE_AGENT,
             response_format=ProviderStrategy(WebScrapeResult),
@@ -66,9 +66,6 @@ class ResearchTeam(BaseTeam):
 
         # Build graph
         self._graph = self._build_graph()
-
-        # Setup optional tracing
-        self._tracer = self._setup_tracer(self._graph, trace_project_name)
 
     def _build_graph(self) -> CompiledStateGraph:
         """Construct the internal StateGraph for research team"""
@@ -112,7 +109,7 @@ class ResearchTeam(BaseTeam):
 
         chain = (
             RESEARCH_TEAM_SUPERVISOR_PROMPT
-            | self.gllm_4_1
+            | self.gllm_41_nano
             | partial(self._parse_supervisor_output, valid_agents=valid_agents)
         )
 

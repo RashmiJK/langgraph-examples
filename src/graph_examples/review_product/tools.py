@@ -41,16 +41,18 @@ tavily_search_tool = TavilySearch(
 )
 
 # Enhanced Tavily extract tool
-tavily_extract_tool = TavilyExtract(extract_depth="advanced", include_images=True)
+tavily_extract_tool = TavilyExtract(
+    extract_depth="basic", include_images=False, chunks_per_source=1
+)
 
 # Initialize ONCE
 _SUMMARY_LLM = ChatOpenAI(
-    model_name="openai/gpt-4.1-mini",  # Corrected model name
+    model_name="openai/gpt-4o-mini",  # gpt-4.1-mini, Corrected model name
     api_key=os.getenv("GITHUB_TOKEN"),
     base_url=os.getenv("GITHUB_INFERENCE_ENDPOINT"),
 )
 _ENCODER = tiktoken.get_encoding("cl100k_base")
-_MAX_TOKENS = 7000
+_MAX_TOKENS = 5000
 
 
 @tool
