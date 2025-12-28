@@ -25,3 +25,5 @@ ChromaVectorStore/
 
 # cross-encoder model download
 .cache/
+
+*.log

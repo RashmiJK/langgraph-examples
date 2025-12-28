@@ -1,19 +1,25 @@
-import time
+import os
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
+from langchain_core.messages import BaseMessage
+
+from graph_examples.logger import get_logger
+from graph_examples.review_product.editorial_board import EditorialBoard
 
 load_dotenv(override=True)
+logger = get_logger(__name__)
 
 # page config
 st.set_page_config(
-    page_title="Product Review Analyzer",
-    page_icon="🛍️",
-    layout="wide",
+    page_title="AI Product Comparison",
+    page_icon="🎙️",
+    layout="centered",
     initial_sidebar_state="expanded",
     menu_items={
-        "About": "#### Analyze product reviews from multiple sources and generate comprehensive reports",
+        "About": "#### AI Product Comparison Studio\nPowered by LangGraph, OpenAI, and Deepgram.",
     },
 )
 
@@ -127,32 +133,38 @@ st.markdown(
 # session state : analysis_completed
 if "analysis_completed" not in st.session_state:
     st.session_state.analysis_completed = False
-if "product_data" not in st.session_state:
-    st.session_state.product_data = None
+# session state: final_audio
+if "final_audio" not in st.session_state:
+    st.session_state.final_audio = None
+
+
+image_file1_path = Path(__file__).parent / "media" / "ai_product_comp_studio.png"
+image_file2_path = Path(__file__).parent / "media" / "workflow.png"
 
 # sidebar
 with st.sidebar:
-    st.markdown("# 🔍 Product Review Analyzer")
+    st.image(image_file1_path, width=300)
     st.markdown("---")
 
+    st.markdown("## 🤖 Workflow Status")
+    st.write("")
+    st.markdown("**🎯 Chief Editor** - receives your request.")
+    st.write("")
+    st.markdown("**🔍 Research Team** - finds and scrapes product info")
+    st.write("")
+    st.markdown("**🎬 Production Team** - writes and voices the script")
     st.markdown("---")
-    st.markdown("### 📊 Focus Areas")
-    st.markdown("Sentiment Analysis")
-    st.markdown("Feature Extraction")
-    st.markdown("Price Tracking")
+    st.markdown("⚡️Powered by LangGraph Multi-Agent System")
+    st.image(image_file2_path, width=300)
 
-    st.markdown("---")
-    st.markdown("### 🎨 Display Options")
-    st.selectbox("Chart Theme", ["Plotly", "Streamlit", "Dark"], key="theme")
-    st.checkbox("Generate Word Cloud", value=True, key="show_word_cloud")
 
 # Main content
 st.markdown(
     """
-<div style='background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 2rem;'>
-    <h1 style='color: #667eea; margin: 0;'>🔍 Product Review Analyzer</h1>
-    <p style='color: #666; margin-top: 0.5rem; font-size: 1.1rem;'>
-        Compare products with AI-powered sentiment analysis and insights
+<div style='text-align: center; background: white; padding: 1rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 2rem;'>
+    <h2 style='color: #667eea; margin: 0;'>🎙️ AI Product Comparision Studio 🔈 </h2>
+    <p style='color: #666; margin-top: 0.5rem; font-size: 1rem;'>
+        Enter the product names, and watch the AI research, write, and narrate a review for you
     </p>
 </div>
 """,
@@ -165,14 +177,14 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown(
         """
-    <div style='background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 1rem;'>
-        <h3 style='color: #667eea; margin-top: 0;'>📱 Product A</h3>
+    <div style='align-items: center; justify-content: center; text-align: center; height: 40px; background: white; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 2rem;'>
+        <h5 style='color: #667eea; margin-top: 0;'>📝 First Product</h5>
     </div>
     """,
         unsafe_allow_html=True,
     )
     product_a = st.text_input(
-        "",
+        "First Product",
         placeholder="e.g., iPhone 15 Pro",
         key="product_a",
         label_visibility="collapsed",
@@ -181,125 +193,146 @@ with col1:
 with col2:
     st.markdown(
         """
-    <div style='background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 1rem;'>
-        <h3 style='color: #667eea; margin-top: 0;'>📱 Product B</h3>
+    <div style='align-items: center; justify-content: center; text-align: center; height: 40px; background: white; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 2rem;'>
+        <h5  style='color: #667eea; margin-top: 0;'>🆚 Second Product</h5>
     </div>
     """,
         unsafe_allow_html=True,
     )
     product_b = st.text_input(
-        "",
+        "Second Product",
         placeholder="e.g., Samsung Galaxy S24",
         key="product_b",
         label_visibility="collapsed",
     )
-
-# position analyze button
+st.write("---")
+# position compare button
 col_centre = st.columns([1, 2, 1])[1]
 with col_centre:
-    if st.button("🚀 Analyze Products", width="stretch"):
+    if st.button("🚀 Compare Products", width="stretch", type="primary"):
         if product_a and product_b and product_a != product_b:
-            show_progress_container = st.container()
-            with show_progress_container:
-                st.markdown(
-                    """
-                <div style='background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 2rem 0;'>
-                    <h3 style='color: #667eea; text-align: center;'>⚙️ Analyzing Products...</h3>
-                </div>
-                """,
-                    unsafe_allow_html=True,
+            tracer_name = Path(__file__).parent.name
+            editorial_board = EditorialBoard(trace_project_name=tracer_name)
+
+            query = f"Compare {product_a} and {product_b}. Which is better?"
+
+            with st.status(
+                "⏳🧐 AI Agents are researching & recording ...", expanded=True
+            ) as status:
+                # placeholder for the latest action
+                latest_action = st.empty()
+
+                PREFIX = "Audio generation complete:"
+
+                for namespace, chunk_msg in editorial_board.stream_workflow(query):
+                    if isinstance(namespace, tuple) and len(namespace):
+                        names = [m.split(":")[0] for m in namespace]
+                        display_msg = "➡️".join(names)
+                    else:
+                        display_msg = "🔄 Analysis in progress..."
+
+                    if (
+                        isinstance(chunk_msg, tuple)
+                        and len(chunk_msg)
+                        and isinstance(chunk_msg[0], BaseMessage)
+                    ):
+                        content = chunk_msg[0].content
+                        if content and PREFIX in content:
+                            st.session_state.final_audio = content.split(PREFIX, 1)[
+                                -1
+                            ].strip()
+
+                    latest_action.markdown(f"{display_msg}")
+
+                    logger.info(f"Processed: {display_msg}")
+
+                status.update(
+                    label="✅ Analysis completed!", state="complete", expanded=False
                 )
 
-                progress_bar = st.progress(0)
-                progress_status = st.empty()
-
-                steps = [
-                    "🔍 Searching for products...",
-                    "🌐 Scraping reviews from Amazon...",
-                    "💬 Collecting Reddit discussions...",
-                    "🎯 Analyzing sentiment...",
-                    "✨ Extracting key features...",
-                    "📊 Generating insights...",
-                ]
-
-                for i, step in enumerate(steps):
-                    progress_status.markdown(
-                        f"<p style='text-align: center; color: #667eea; font-weight: 600;'>{step}</p>",
-                        unsafe_allow_html=True,
-                    )
-                    progress_bar.progress((i + 1) / len(steps))
-                    time.sleep(0.5)
-
-                st.session_state.analysis_completed = True
-                st.session_state.product_data = {
-                    "product_a": product_a,
-                    "product_b": product_b,
-                }
-                # show_progress_container.empty() # .empty() don't seem to empty the container
-                st.rerun()  # Right now button press is assisting in hiding the progress container
+            st.session_state.analysis_completed = True
+            if st.session_state.final_audio:
+                st.balloons()
+            st.rerun()
         else:
             st.error("⚠️ Please enter two different products to compare")
 
 # Display results
 if st.session_state.analysis_completed:
-    st.markdown("---")
+    final_audio_path, final_script_path = None, None
+    if st.session_state.final_audio:
+        final_audio_path = Path(__file__).parent / st.session_state.final_audio
+        final_script_path = Path(final_audio_path).with_suffix(".txt")
 
-    # Key Metrics
-    st.markdown(
-        """
-    <div style='background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 2rem;'>
-        <h2 style='color: #667eea; margin-top: 0;'>📊 Key Insights</h2>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    if final_audio_path and final_script_path:
+        st.divider()
+        st.subheader("🌟 Final Production")
 
-    col1, col2, col3, col4 = st.columns(4)
+        cols = st.columns([1, 1.5])
 
-    with col1:
-        st.metric(
-            label=f"{st.session_state.product_data['product_a']} Rating",
-            value="4.6 ⭐",
-            delta="0.3",
-        )
+        with cols[0]:
+            if final_audio_path and os.path.exists(final_audio_path):
+                st.success("✅ Audio Ready!")
+                st.audio(final_audio_path)
 
-    with col2:
-        st.metric(
-            label=f"{st.session_state.product_data['product_b']} Rating",
-            value="4.4 ⭐",
-            delta="-0.1",
-        )
+                # Download button
+            with open(final_audio_path, "rb") as file:
+                st.download_button(
+                    label="Download MP3",
+                    data=file,
+                    file_name=final_audio_path.name,
+                    mime="audio/mp3",
+                )
+        with cols[1]:
+            with st.expander("Read the Full Script", expanded=True, icon="📖"):
+                if final_script_path and os.path.exists(final_script_path):
+                    with open(final_script_path, "r") as f:
+                        script_content = f.read()
+                    st.markdown(
+                        f"""
+        <div style='height: 300px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);'>
+            {script_content}
+        </div>
+        """,
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown("Script content unavailable.")
 
-    with col3:
-        st.metric(label="Total Reviews Analyzed", value="847", delta="234 new")
+            # Download script
+            if final_script_path and os.path.exists(final_script_path):
+                with open(final_script_path, "r") as file:
+                    st.download_button(
+                        label="Download Script",
+                        data=file,
+                        file_name=final_script_path.name,
+                        mime="text/plain",
+                    )
+    else:
+        st.error("""
+    ⚠️ **Something went wrong during production.**
+    This is likely due to:
+    1. **GitHub Models Rate Limit**: The free tier has strict request limits.
+    2. **Context Overflow**: Too much research data gathered.
+    **Debugging:**
+    *   Check your terminal or Opik traces for `RateLimitError` or `ContextWindowExceeded`.
+    *   Try a simpler query or wait a moment before retrying.
+    """)
 
-    with col4:
-        st.metric(label="Confidence Score", value="92%", delta="High")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Tabs for different analyses
-    tab1, tab2, tab3, tab4 = st.tabs(
-        [
-            "📈 Sentiment Analysis",
-            "🎯 Feature Comparison",
-            "💰 Price Insights",
-            "📝 Top Reviews",
-        ]
-    )
-
-
-# Session State Debugging
-for key, value in st.session_state.items():
-    st.write(f"{key}: {value}")
-st.write(f"Product A: {product_a} \\t Product B: {product_b}")
+    if st.button("🔄 New Comparison", use_container_width=True, type="primary"):
+        # Reset session state
+        st.session_state.analysis_completed = False
+        st.session_state.product_a = None
+        st.session_state.product_b = None
+        st.session_state.final_audio = None
+        st.rerun()
 
 # Footer
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown(
     """
 <div style='text-align: center; color: rgba(255,255,255,0.7); padding: 2rem;'>
-    <p> 🌟🤖 | Backend using LangGraph Multi-Agent System | Frontend using Streamlit | 🤖✨ </p>
+    <p> 🌟🤖 | 🎙️ Production Studio powered by LangGraph Agents, Deepgram & Streamlit 🎬  | 🤖✨ </p>
 </div>
 """,
     unsafe_allow_html=True,

@@ -139,3 +139,20 @@ class EditorialBoard:
             config["callbacks"] = [self._tracer]
 
         return self._graph.invoke(initial_state, config=config)
+
+    # Streaming for UI
+    def stream_workflow(self, query: str, recursion_limit: int = 35):
+        """
+        Public helper to stream the graph execution.
+        """
+        initial_state = {"messages": [HumanMessage(content=query)]}
+        config = {"recursion_limit": recursion_limit}
+
+        if self._tracer:
+            config["callbacks"] = [self._tracer]
+
+        # Return the generator directly
+        # stream_mode="messages" with subgraphs=True returns tuples like (namespace (tuple), chunk_data/AIMessageChunk(tuple))
+        return self._graph.stream(
+            initial_state, config=config, stream_mode="messages", subgraphs=True
+        )

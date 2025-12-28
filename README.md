@@ -51,8 +51,25 @@ Example:
         <td colspan="2" align="center"><strong><h2>LangGraph Examples</h2></strong></td>
     </tr>
     <tr>
+        <td colspan="2" style="height: 15px"></td>
+    </tr>
+    <tr>
+        <td colspan="2" align="center"> <b>AI Product Comparision Studio</b><br><small><i> Production Studio powered by LangGraph Agents, Tavily, DuckDuckGo & Deepgram </i></small></td>
+    </tr>
+        <td colspan="2" align="center"> 
+            <a href="src/graph_examples/review_product/review_product_graph.png"> <img src="src/graph_examples/review_product/review_product_graph.png" width="275" height="175"></a>   
+            <a href="src/graph_examples/review_product/review_product_ui.png"> <img src="src/graph_examples/review_product/review_product_ui.png" width="275" height="175"></a>
+            <br>
+            <small><i>Sample Output: <a href="src/graph_examples/review_product/media/apple_watch_se3_vs_fitbit_sense.mp3">apple_watch_se3_vs_fitbit_sense.mp3, <a href="src/graph_examples/review_product/media/apple_watch_se3_vs_fitbit_sense.txt">apple_watch_se3_vs_fitbit_sense.txt</a></i></small>
+            <br>
+            <i>From the repository root folder, execute: <code>uv run product_review</code></i>
+        </td>
+    <tr>
+        <td colspan="2" style="height: 15px"></td>
+    </tr>
+    <tr>
         <td> <b>Document Generator</b></td>
-        <td> <b>Search and Reranking Analysis</b></td>
+        <td> <b>Search and Reranking Analysis </b><br> <small><i>reranking via FlashRank & ms-marco-MiniLM-L-12-v2 cross-encoder</i></small></td>
     </tr>
     <tr>
         <td>
@@ -69,11 +86,7 @@ Example:
         <td><i>From the repository root folder, execute: <code>uv run rag_search</code></i></td>
     </tr>
     <tr>
-    <td colspan="2" style="height: 10px"></td>
-    </tr>
-    <tr>
-        <td> <b>Next flow </b></td>
-        <td> <b>Next flow </b></td>
+    <td colspan="2" style="height: 15px"></td>
     </tr>
 </table>
 
